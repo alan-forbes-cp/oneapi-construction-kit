@@ -65,6 +65,12 @@ jobs:
 #    - run: git merge github-user/"$OCK_BRANCH"
 #    - run: git log -1
 #    - run: cp -r ../scripts/*.* scripts
+    # installs tools, ninja, installs llvm and sets up sccache
+    - name: setup-ubuntu
+      uses:  ./.github/actions/setup_ubuntu_build
+      with:
+        llvm_version: 18
+        llvm_build_type: RelAssert
     - run: ls -l
     - run: which ninja
     - run: echo pull and extract llvm_tools and llvm
