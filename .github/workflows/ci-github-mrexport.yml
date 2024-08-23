@@ -52,12 +52,12 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
-      path: source
-    - run: ls -l
-    - run: ls -l source
-#      with:
+      with:
+        path: source
 #        fetch-depth: 50
 #        lfs: true
+    - run: ls -l
+    - run: ls -l source
 #    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
 #    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
 #    - run: cd oneapi-construction-kit
