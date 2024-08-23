@@ -1,4 +1,4 @@
-# Simple workflow
+# Simple workflow #2
 name: alan
 on:
   pull_request:
