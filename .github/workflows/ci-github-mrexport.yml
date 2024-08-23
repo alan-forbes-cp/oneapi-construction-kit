@@ -46,9 +46,9 @@ jobs:
       CommandBuffer: 'ON'
 #      USM: 'ON'
       FP16: 'OFF'
-      Compiler: clang-17
+      Compiler: llvm_install/bin/clang
 # CPPCompiler is new
-      CPPCompiler: clang++-17
+      CPPCompiler: llvm_install/bin/clang++
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
