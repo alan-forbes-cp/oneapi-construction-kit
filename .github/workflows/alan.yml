@@ -1,0 +1,27 @@
+# Simple workflow
+name: alan
+on:
+  pull_request:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # build and run host x86_64, execute UnitCL and lit tests and build and run offline
+  alan:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      
+      # installs tools, ninja, installs llvm and sets up sccahe
+      - name: setup-ubuntu
+        uses:  ./.github/actions/setup_ubuntu_build
+        with:
+          llvm_version: 18
+          llvm_build_type: RelAssert        
