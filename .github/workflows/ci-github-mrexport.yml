@@ -74,6 +74,7 @@ jobs:
         llvm_version: 17
         llvm_build_type: RelAssert
     - run: ls -l
+    - run: ls -lR llvm_install
     - run: echo pull and extract llvm_tools and llvm
 
     - run: echo python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --artefact_name $LLVMBranch --target $Target -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images -DCA_HOST_ENABLE_BUILTIN_KERNEL=ON -DCA_HOST_ENABLE_BUILTINS_EXTENSION=ON -DCA_HOST_ENABLE_FP16=$FP16 -DCA_ASSEMBLE_SPIRV_LL_LIT_TESTS_OFFLINE=OFF -DOCL_EXTENSION_cl_intel_unified_shared_memory=$USM -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold
