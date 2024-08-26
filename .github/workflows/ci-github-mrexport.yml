@@ -50,8 +50,8 @@ jobs:
 # CPPCompiler is new
       CPPCompiler: llvm_install/bin/clang++
     steps:
-    - run: ls -al
-    - run: ls -al $GITHUB_WORKSPACE
+    - run: pwd && ls -al
+    - run: pwd && ls -al $GITHUB_WORKSPACE
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
 #      with:
@@ -59,8 +59,8 @@ jobs:
 #        fetch-depth: 50
 #        lfs: true
 #    - run: cd code
-    - run: ls -al
-    - run: ls -al $GITHUB_WORKSPACE
+    - run: pwd && ls -al
+    - run: pwd && ls -al $GITHUB_WORKSPACE
 #    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
 #    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
 #    - run: cd oneapi-construction-kit
@@ -79,9 +79,9 @@ jobs:
       with:
         llvm_version: 17
         llvm_build_type: RelAssert
-    - run: ls -al
-    - run: ls -al $GITHUB_WORKSPACE
-    - run: ls -alR llvm_install
+    - run: pwd && ls -al
+    - run: pwd && ls -al $GITHUB_WORKSPACE
+    - run: pwd && ls -alR llvm_install
     - run: echo pull and extract llvm_tools and llvm
 
     - run: echo python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --artefact_name $LLVMBranch --target $Target -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images -DCA_HOST_ENABLE_BUILTIN_KERNEL=ON -DCA_HOST_ENABLE_BUILTINS_EXTENSION=ON -DCA_HOST_ENABLE_FP16=$FP16 -DCA_ASSEMBLE_SPIRV_LL_LIT_TESTS_OFFLINE=OFF -DOCL_EXTENSION_cl_intel_unified_shared_memory=$USM -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold
