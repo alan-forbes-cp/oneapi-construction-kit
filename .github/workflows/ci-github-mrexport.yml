@@ -52,7 +52,7 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
-      with:
+#      with:
 #        path: source
 #        fetch-depth: 50
 #        lfs: true
