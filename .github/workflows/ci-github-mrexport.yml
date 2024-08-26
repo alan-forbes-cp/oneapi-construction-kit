@@ -80,7 +80,7 @@ jobs:
         llvm_version: 17
         llvm_build_type: RelAssert
     - run: wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
-    - run: wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list https://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list
+    - run: sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list https://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list
     - run: sudo apt-get install --yes vulkan-sdk
     - run: pwd && ls -al
     - run: pwd && ls -al $GITHUB_WORKSPACE
