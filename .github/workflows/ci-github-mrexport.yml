@@ -50,6 +50,7 @@ jobs:
 # CPPCompiler is new
       CPPCompiler: llvm_install/bin/clang++
     steps:
+    - run: ls -al
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
 #      with:
