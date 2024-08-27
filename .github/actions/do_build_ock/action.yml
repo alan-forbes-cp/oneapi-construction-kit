@@ -4,6 +4,9 @@ description: Action to build the oneapi-construction-kit
 # Some of these are riscv or host target specific, but it does not harm at present to
 # overset cmake values
 inputs:
+  path:
+    description: 'Override default path'
+    default: '.'
   build_type:
     description: 'build type e.g Release, ReleaseAssert (default ReleaseAssert)'
     default: ReleaseAssert
@@ -109,7 +112,7 @@ runs:
               -DCA_CL_ENABLE_RVV_SCALABLE_VP_VECZ_CHECK=${{ inputs.enable_rvv_scalable_vp_vecz_check }}
               -DCMAKE_INSTALL_PREFIX=${{ inputs.install_dir }}
                ${{ inputs.extra_flags }}
-              .      
+               ${{ inputs.path }}
     - name: build_ock
       shell: bash
       run:
