@@ -97,6 +97,7 @@ jobs:
       uses: ./.github/actions/do_build_ock
 #      working-directory: $GITHUB_WORKSPACE/code
       with:
+        from_dir: $GITHUB_WORKSPACE/code
 #        #assemble_spirv_ll_lit_test_offline:
         build_dir: $GITHUB_WORKSPACE/build
         build_targets: check-ock

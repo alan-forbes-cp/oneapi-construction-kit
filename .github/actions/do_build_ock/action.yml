@@ -4,6 +4,9 @@ description: Action to build the oneapi-construction-kit
 # Some of these are riscv or host target specific, but it does not harm at present to
 # overset cmake values
 inputs:
+  from_dir:
+    description: 'dir from which action should run'
+    default: '.'
   build_type:
     description: 'build type e.g Release, ReleaseAssert (default ReleaseAssert)'
     default: ReleaseAssert
@@ -80,7 +83,8 @@ runs:
   steps:
     - name: cmake_ock
       shell: bash
-      run:
+      run: |
+        cd ${{ inputs.from_dir }}
         cmake -GNinja
               -B${{ inputs.build_dir }}
               -DCMAKE_C_COMPILER_LAUNCHER=sccache
@@ -112,5 +116,6 @@ runs:
               .      
     - name: build_ock
       shell: bash
-      run:
+      run: |
+        cd ${{ inputs.from_dir }}
         ninja -C ${{ inputs.build_dir }} ${{ inputs.build_targets }}
