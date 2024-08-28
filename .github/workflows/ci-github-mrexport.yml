@@ -58,8 +58,8 @@ jobs:
         #build_targets: check-ock
         build_targets: check-ock-all-lit
         build_type: $BuildType
-        c_compiler: $Compiler
-        cxx_compiler: $CXXCompiler
+        c_compiler: $GITHUB_WORKSPACE/$Compiler
+        cxx_compiler: $GITHUB_WORKSPACE/$CXXCompiler
         command_buffer: $CommandBuffer
         debug_support: ON
 #        enable_api:
