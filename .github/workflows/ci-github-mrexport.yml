@@ -16,6 +16,7 @@ jobs:
     if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
     timeout-minutes: 60
     env:
+      # Retain only imported env: settings at this levels that are actually used somewhere in the job
       RUN_BUILD_TEST: '1'
       BuildType: ReleaseAssert
       Images: 'OFF'
@@ -33,29 +34,29 @@ jobs:
         path: code
     # copy .github to workspace top level
     - run: cp -R code/.github .github
+    # setup ubuntu now includes vulcan sdk
     - name: setup-ubuntu
       # installs tools, ninja, installs llvm and sets up sccache
       uses:  ./.github/actions/setup_ubuntu_build
       with:
         llvm_version: 17
         llvm_build_type: RelAssert
-#    - run: wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
-#    - run: sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.3.243-jammy.list https://packages.lunarg.com/vulkan/1.3.243/lunarg-vulkan-1.3.243-jammy.list
-#    - run: sudo apt-get update
-#    - run: sudo apt-get install --yes vulkan-sdk
 
     - run: echo python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --artefact_name $LLVMBranch --target $Target -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images -DCA_HOST_ENABLE_BUILTIN_KERNEL=ON -DCA_HOST_ENABLE_BUILTINS_EXTENSION=ON -DCA_HOST_ENABLE_FP16=$FP16 -DCA_ASSEMBLE_SPIRV_LL_LIT_TESTS_OFFLINE=OFF -DOCL_EXTENSION_cl_intel_unified_shared_memory=$USM -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold
 
     - run: echo cmake -GNinja -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=OFF -DCA_HOST_ENABLE_BUILTIN_KERNEL=ON -DCA_HOST_ENABLE_BUILTINS_EXTENSION=ON -DCA_HOST_ENABLE_FP16=$FP16 -DCA_ASSEMBLE_SPIRV_LL_LIT_TESTS_OFFLINE=OFF -DOCL_EXTENSION_cl_intel_unified_shared_memory=ON -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/build/install -DCA_LLVM_INSTALL_DIR=$GITHUB_WORKSPACE/build/llvm -DCMAKE_BUILD_TYPE=$BuildType -DCMAKE_C_COMPILER=$GITHUB_WORKSPACE/$Compiler -DCMAKE_CXX_COMPILER=$GITHUB_WORKSPACE/$CXXCompiler -DCA_ENABLE_DEBUG_SUPPORT=ON -DCA_BUILTINS_TOOLS_DIR=$GITHUB_WORKSPACE/build/llvm/llvm_tools -DCA_BUILD_32_BITS=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache "-DCA_GTEST_LAUNCHER=/usr/bin/python;-u;scripts/gtest-terse-runner.py" $GITHUB_WORKSPACE
+
     - run: echo cmake -GNinja -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=OFF -DCA_HOST_ENABLE_BUILTIN_KERNEL=ON -DCA_HOST_ENABLE_BUILTINS_EXTENSION=ON -DCA_HOST_ENABLE_FP16=$FP16 -DCA_ASSEMBLE_SPIRV_LL_LIT_TESTS_OFFLINE=OFF -DOCL_EXTENSION_cl_intel_unified_shared_memory=ON -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/build/install -DCA_LLVM_INSTALL_DIR=$GITHUB_WORKSPACE/llvm_install -DCMAKE_BUILD_TYPE=$BuildType -DCMAKE_C_COMPILER=$GITHUB_WORKSPACE/$Compiler -DCMAKE_CXX_COMPILER=$GITHUB_WORKSPACE/$CXXCompiler -DCA_ENABLE_DEBUG_SUPPORT=ON -DCA_BUILTINS_TOOLS_DIR=$GITHUB_WORKSPACE/build/llvm/llvm_tools -DCA_BUILD_32_BITS=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache "-DCA_GTEST_LAUNCHER=/usr/bin/python;-u;scripts/gtest-terse-runner.py" $GITHUB_WORKSPACE/code
+
     - run: pwd && ls -al
+    #  call build action - overwriting any defaults
     - name: build ock
       uses: ./.github/actions/do_build_ock
       with:
         path: $GITHUB_WORKSPACE/code
 #        assemble_spirv_ll_lit_test_offline:
         build_dir: $GITHUB_WORKSPACE/build
-        #build_targets: check-ock
+        # NOTE: set a temp target for development purposes only. build_targets: check-ock
         build_targets: check-ock-all-lit
         build_type: $BuildType
         c_compiler: $GITHUB_WORKSPACE/$Compiler
@@ -80,6 +81,5 @@ jobs:
 #        riscv_enabled:
         usm: $USM
     - run: pwd && ls -al
-    - run: ls -al *
 
-#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+# 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
