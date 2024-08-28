@@ -22,7 +22,7 @@ project(ComputeAorta VERSION 4.0.0 LANGUAGES C CXX ASM)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
-  message(FATAL_ERROR "oneAPI Construction Kit does not support in-tree builds! ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}")
+  message(FATAL_ERROR "oneAPI Construction Kit does not support in-tree builds!")
 endif()
 
 # GCC 4.8 is known to have bugs that cause test failures, we require at least
