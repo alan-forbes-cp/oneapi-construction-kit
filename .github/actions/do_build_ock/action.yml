@@ -89,9 +89,8 @@ runs:
   steps:
     - name: cmake_ock
       shell: bash
-      run: |
-        set -x
-        cmake -GNinja
+      run:
+        set -x && cmake -GNinja
               -B${{ inputs.build_dir }}
               -DCMAKE_C_COMPILER=${{  inputs.c_compiler }}
               -DCMAKE_CXX_COMPILER=${{  inputs.cxx_compiler }}
@@ -124,6 +123,5 @@ runs:
                ${{ inputs.path }}
     - name: build_ock
       shell: bash
-      run: |
-        set -x
-        ninja -C ${{ inputs.build_dir }} ${{ inputs.build_targets }}
+      run:
+        set -x && ninja -C ${{ inputs.build_dir }} ${{ inputs.build_targets }}
