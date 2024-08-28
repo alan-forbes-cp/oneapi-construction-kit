@@ -89,7 +89,7 @@ runs:
   steps:
     - name: cmake_ock
       shell: bash
-      run:
+      run: |
         set -x
         cmake -GNinja
               -B${{ inputs.build_dir }}
@@ -124,6 +124,6 @@ runs:
                ${{ inputs.path }}
     - name: build_ock
       shell: bash
-      run:
+      run: |
         set -x
         ninja -C ${{ inputs.build_dir }} ${{ inputs.build_targets }}
