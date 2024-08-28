@@ -9,7 +9,7 @@ inputs:
     description: 'Major llvm version to use for fetching llvm cache e.g. 17'
     default: 17
   ubuntu_version:
-    description: 'Version of ubuntu used for cache retrieval'
+    description: 'Version of ubuntu'
     default: 22.04
   save:
     description: 'Save the build cache at the end - not for PR testing'
@@ -22,9 +22,17 @@ runs:
   steps:
     - name: Install prerequisites
       shell: bash    
+      env:
+        UBUNTU_VER : '${{ inputs.ubuntu_version }}'
       run: |
         sudo apt-get install -y spirv-tools
         pip install lit
+        wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+        if [ "$UBUNTU_VER" = "20.04" ]; sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.3.243-focal.list https://packages.lunarg.com/vulkan/1.3.243/lunarg-vulkan-1.3.243-focal.list; fi
+        if [ "$UBUNTU_VER" = "22.04" ]; sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.3.243-jammy.list https://packages.lunarg.com/vulkan/1.3.243/lunarg-vulkan-1.3.243-jammy.list; fi
+        if [ "$UBUNTU_VER" = "24.04" ]; sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list https://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list; fi
+        sudo apt-get update
+        sudo apt-get install --yes vulkan-sdk
 
     - name: Install Ninja
       uses: llvm/actions/install-ninja@main
