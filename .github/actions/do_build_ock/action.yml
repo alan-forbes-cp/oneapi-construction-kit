@@ -7,12 +7,6 @@ inputs:
   path:
     description: 'Override default path'
     default: '.'
-  c_compiler:
-    description: 'C compiler'
-    default: 'llvm_install/bin/clang'
-  cxx_compiler:
-    description: 'C++ compiler'
-    default: 'llvm_install/bin/clang++'
   build_type:
     description: 'build type e.g Release, ReleaseAssert (default ReleaseAssert)'
     default: ReleaseAssert
@@ -82,6 +76,9 @@ inputs:
   install_dir:
     description: "Install directory for OCK"
     default: install
+  use_linker:
+    description: "Use linker"
+    default: ""
 
 runs:
   # We don't want a new docker just a list of steps, so mark as composite
@@ -92,8 +89,6 @@ runs:
       run:
         set -x && cmake -GNinja
               -B${{ inputs.build_dir }}
-              -DCMAKE_C_COMPILER=${{  inputs.c_compiler }}
-              -DCMAKE_CXX_COMPILER=${{  inputs.cxx_compiler }}
               -DCMAKE_C_COMPILER_LAUNCHER=sccache
               -DCMAKE_CXX_COMPILER_LAUNCHER=sccache                
               -DCA_MUX_TARGETS_TO_ENABLE=${{ inputs.mux_targets_enable }}
@@ -119,6 +114,7 @@ runs:
               -DCA_CL_ENABLE_RVV_SCALABLE_VECZ_CHECK=${{ inputs.enable_rvv_scalable_vecz_check }}
               -DCA_CL_ENABLE_RVV_SCALABLE_VP_VECZ_CHECK=${{ inputs.enable_rvv_scalable_vp_vecz_check }}
               -DCMAKE_INSTALL_PREFIX=${{ inputs.install_dir }}
+              -DCA_USE_LINKER=${{ inputs.use_linker }}
                ${{ inputs.extra_flags }}
                ${{ inputs.path }}
     - name: build_ock

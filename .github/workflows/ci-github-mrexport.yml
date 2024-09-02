@@ -56,15 +56,13 @@ jobs:
         # NOTE: set a temp target for development purposes only. build_targets: check-ock
         build_targets: check-ock-all-lit
         build_type: $BuildType
-        c_compiler: $GITHUB_WORKSPACE/$Compiler
-        cxx_compiler: $GITHUB_WORKSPACE/$CXXCompiler
         command_buffer: $CommandBuffer
         debug_support: ON
 #        enable_api:
 #        enable_rvv_scalable_vecz_check:
 #        enable_rvv_scalable_VP_vecz_check:
 #        external_compiler_dirs:
-#        extra_flags:
+        extra_flags: -DCMAKE_C_COMPILER=$GITHUB_WORKSPACE/$Compiler -DCMAKE_CXX_COMPILER=$GITHUB_WORKSPACE/$CXXCompiler
 #        hal_description:
 #        hal_refsi_soc:
         host_fp16: $FP16
@@ -77,6 +75,7 @@ jobs:
 #        offline_kernel_tests:
         path: $GITHUB_WORKSPACE/code
 #        riscv_enabled:
+        use_linker:
         usm: $USM
     - run: pwd && ls -al
 
