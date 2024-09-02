@@ -1,0 +1,1115 @@
+name: ComputeAorta/ci-github-mrexport
+on:
+  push:
+  workflow_dispatch:
+concurrency:
+  group: "${{ github.ref }}"
+  cancel-in-progress: true
+env:
+  STORAGE_USER: "${{ secrets.STORAGE_USER }}"
+  STORAGE_PASS: "${{ secrets.STORAGE_PASS }}"
+  ZULIP_TOKEN: "${{ secrets.ZULIP_TOKEN }}"
+  ComputeAortaCL_TOKEN: "${{ secrets.ComputeAortaCL_TOKEN }}"
+  ComputeAortaCLVK_TOKEN: "${{ secrets.ComputeAortaCLVK_TOKEN }}"
+  SCCACHE_REDIS: redis://buildcache01.office.codeplay.com
+  OLD_CA_GITLAB_API_TOKEN: "${{ secrets.OLD_CA_GITLAB_API_TOKEN }}"
+  OLD_CA_GIT_WRITE_TOKEN: "${{ secrets.OLD_CA_GIT_WRITE_TOKEN }}"
+  CLICOLOR_FORCE: '1'
+  GTEST_COLOR: 'yes'
+  CA_GIT_WRITE_TOKEN: "${{ secrets.CA_GIT_WRITE_TOKEN }}"
+  CA_GITLAB_API_TOKEN: "${{ secrets.CA_GITLAB_API_TOKEN }}"
+  LLVM_GIT_WRITE_TOKEN: zrHPYsf6BVupQeYySmnH
+jobs:
+  mr-run-doc-:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    if: ${{ github.event_name }} == "merge_request_event"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo ok, run jobs
+  mr-run-host-ubuntu-:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    if: ${{ github.event_name }} == "merge_request_event"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo ok, run jobs
+  mr-run-host-windows-:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    if: ${{ github.event_name }} == "merge_request_event"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo ok, run jobs
+  mr-run-riscv-:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    if: ${{ github.event_name }} == "merge_request_event"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo ok, run jobs
+  mr-run-lint-:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    if: ${{ github.event_name }} == "merge_request_event"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo ok, run jobs
+  mr-clang-tidy-changes-only:
+    needs: mr-run-lint-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+    strategy:
+      matrix:
+        LLVM_VERSION:
+        - "$LLVM_PREVIOUS"
+        - "$LLVM_LATEST"
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: env
+    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type ReleaseAssert --artefact_name ${{ matrix.LLVM_VERSION }} -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=ON -DOCL_EXTENSION_cl_khr_command_buffer=ON -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=ON --target build.ninja
+    - run: ninja -C build $(ninja -C build -t targets all | sed -nE 's/(\.cpp|\.h):.*/\1/p')
+    - run: ./scripts/compute-dependants.py --exclude-filter='(/build/.*\.s$)|(source/cl/test/OpenCL-CTS)|(.*/(external|cookie)/.*)' --build-dir="${{ github.workspace }}/oneapi-construction-kit/build" `git diff --name-only --diff-filter=d origin/$MR_TARGET_BRANCH..HEAD | grep -P '\.(c|cc|cxx|cpp|h|hh|hpp|hxx)$'` | tee /dev/stderr | parallel --verbose -- clang-tidy-17 --quiet -p "${{ github.workspace }}/oneapi-construction-kit/build/" "{}"
+  mr-doc-pdf:
+    needs: mr-run-doc-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_DOC == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      TARGET: doc_pdf
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run:
+      - echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+      - git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+      - cd oneapi-construction-kit
+      - echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+      - git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+      - git config user.name "${{ github.actor }}"
+      - git config user.email "${{ github.actor }}"
+      - git fetch github-user
+      - echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+      - git merge github-user/"$OCK_BRANCH"
+      - git log -1
+      - cp -r ../scripts/*.* scripts
+    - run: python -u scripts/build.py --verbose --clean --build_type Release -GNinja --artefact_name $LLVM_PREVIOUS --target $TARGET
+    - run: mkdir public
+    - run: cp build/doc/pdf/ComputeAorta*.pdf public
+    - run: cp build/doc/pdf/ComputeMux*.pdf public
+    - uses: actions/upload-artifact@v4.1.0
+      if: success()
+      with:
+        name: "${{ github.job }}"
+        path: oneapi-construction-kit/public/
+  mr-ubuntu-gcc-x86-llvm-previous-cl3-0-release:
+    needs: mr-run-host-ubuntu-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: Release
+      Arch: x86
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --artefact_name $LLVMBranch --target $Target -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images -DCA_HOST_ENABLE_BUILTIN_KERNEL=ON -DCA_HOST_ENABLE_BUILTINS_EXTENSION=ON -DCA_HOST_ENABLE_FP16=$FP16 -DCA_ASSEMBLE_SPIRV_LL_LIT_TESTS_OFFLINE=OFF -DOCL_EXTENSION_cl_intel_unified_shared_memory=$USM -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-gcc-x86-llvm-latest-x86_64-images-cl3-0-release:
+    needs: mr-run-host-ubuntu-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: Release
+      Arch: x86_64
+      LLVMBranch: "$LLVM_LATEST"
+      Target: check-ock
+      Images: 'ON'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --artefact_name $LLVMBranch --target $Target -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images -DCA_HOST_ENABLE_BUILTIN_KERNEL=ON -DCA_HOST_ENABLE_BUILTINS_EXTENSION=ON -DCA_HOST_ENABLE_FP16=$FP16 -DCA_ASSEMBLE_SPIRV_LL_LIT_TESTS_OFFLINE=OFF -DOCL_EXTENSION_cl_intel_unified_shared_memory=$USM -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-clang-x86-llvm-latest-cl3-0:
+    needs: mr-run-host-ubuntu-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86
+      LLVMBranch: "$LLVM_LATEST"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: clang-17
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --artefact_name $LLVMBranch --target $Target -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images -DCA_HOST_ENABLE_BUILTIN_KERNEL=ON -DCA_HOST_ENABLE_BUILTINS_EXTENSION=ON -DCA_HOST_ENABLE_FP16=$FP16 -DCA_ASSEMBLE_SPIRV_LL_LIT_TESTS_OFFLINE=OFF -DOCL_EXTENSION_cl_intel_unified_shared_memory=$USM -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-clang-x86-llvm-previous-cl3-0-offline:
+    needs: mr-run-host-ubuntu-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: clang-17
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --artefact_name $LLVMBranch --target $Target -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images -DCA_HOST_ENABLE_BUILTIN_KERNEL=ON -DCA_HOST_ENABLE_BUILTINS_EXTENSION=ON -DCA_HOST_ENABLE_FP16=$FP16 -DCA_ASSEMBLE_SPIRV_LL_LIT_TESTS_OFFLINE=OFF -DOCL_EXTENSION_cl_intel_unified_shared_memory=$USM -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold
+    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --binary_dir build_offline --target check-ock --offline_only --external_clc "${{ github.workspace }}/oneapi-construction-kit/build/bin/clc" -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images -DCA_HOST_ENABLE_FP16=$FP16 -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-gcc-aarch64-llvm-previous-cl3-0-fp16:
+    needs: mr-run-host-ubuntu-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: arm64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock-cross
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'ON'
+      Compiler: gcc-9
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --artefact_name $LLVMBranch --target $Target -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images -DCA_HOST_ENABLE_BUILTIN_KERNEL=ON -DCA_HOST_ENABLE_BUILTINS_EXTENSION=ON -DCA_HOST_ENABLE_FP16=$FP16 -DCA_ASSEMBLE_SPIRV_LL_LIT_TESTS_OFFLINE=OFF -DOCL_EXTENSION_cl_intel_unified_shared_memory=$USM -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-gcc-x86_64-riscv-cl3-0:
+    needs: mr-run-riscv-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+      LLVM_VERSION: "$LLVM_LATEST"
+      EXTERNAL_MUX_COMPILER_DIRS: "${{ github.workspace }}/oneapi-construction-kit/examples/refsi/refsi_m1/compiler/refsi_m1"
+      MUX_COMPILERS_TO_ENABLE: refsi_m1
+      HAL_DESCRIPTION: RV64GCV
+      HAL_REFSI_SOC: M1
+      HAL_REFSI_THREAD_MODE: WG
+      TARGET: install
+      DISABLE_VECZ_CHECKS: 'ON'
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: python -u scripts/build.py -Bbuild -GNinja --verbose --clean --build_type ReleaseAssert --artefact_name $LLVM_VERSION --target $TARGET -DCA_ENABLE_HOST_IMAGE_SUPPORT=OFF -DCA_ENABLE_API=cl -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_MUX_TARGETS_TO_ENABLE="riscv" -DCA_EXTERNAL_MUX_COMPILER_DIRS=$EXTERNAL_MUX_COMPILER_DIRS -DCA_MUX_COMPILERS_TO_ENABLE=$MUX_COMPILERS_TO_ENABLE -DCA_RISCV_ENABLED=ON -DCA_CL_DISABLE_UNITCL_VECZ_CHECKS=$DISABLE_VECZ_CHECKS -DCA_CL_ENABLE_RVV_SCALABLE_VECZ_CHECK=ON -DCA_CL_ENABLE_RVV_SCALABLE_VP_VECZ_CHECK=ON -DOCL_EXTENSION_cl_khr_command_buffer=ON -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=ON -DCA_USE_LINKER=gold -DHAL_DESCRIPTION=$HAL_DESCRIPTION -DHAL_REFSI_SOC=$HAL_REFSI_SOC -DHAL_REFSI_THREAD_MODE=$HAL_REFSI_THREAD_MODE
+    - run: python -u scripts/storage.py pull artefact.ca-opencl-cts --verbose --clean --path CA-OpenCL-CTS Ubuntu20 x86_64 14 Release
+    - run: python scripts/testing/run_cities.py -s scripts/jenkins/cts_summary/opencl_conformance_tests_wimpy_very_quick.csv -b CA-OpenCL-CTS/bin -e "CA_RISCV_VF=1,S" -L build/lib -e OCL_ICD_FILENAMES=$PWD/build/lib/libCL.so -e OCL_ICD_VENDORS=/dev/null --timeout 00:10:00 --verbose -l build/cts.log -f build/cts.fail -r build/cts_riscv_1s.xml
+    - run: ninja -C build check-ock
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+    - uses: actions/upload-artifact@v4.1.0
+      if: success()
+      with:
+        name: "${{ github.job }}"
+        path: |-
+          oneapi-construction-kit/build/*.fail
+          oneapi-construction-kit/build/*.log
+  mr-ubuntu-gcc-x86_64-riscv-cl3-0-part2:
+    needs: mr-run-riscv-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+      LLVM_VERSION: "$LLVM_LATEST"
+      EXTERNAL_MUX_COMPILER_DIRS: "${{ github.workspace }}/oneapi-construction-kit/examples/refsi/refsi_m1/compiler/refsi_m1"
+      MUX_COMPILERS_TO_ENABLE: refsi_m1
+      HAL_DESCRIPTION: RV64GCV
+      HAL_REFSI_SOC: M1
+      HAL_REFSI_THREAD_MODE: WG
+      TARGET: install
+      DISABLE_VECZ_CHECKS: 'OFF'
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: python -u scripts/build.py -Bbuild -GNinja --verbose --clean --build_type ReleaseAssert --artefact_name $LLVM_VERSION --target $TARGET -DCA_ENABLE_HOST_IMAGE_SUPPORT=OFF -DCA_ENABLE_API=cl -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_MUX_TARGETS_TO_ENABLE="riscv" -DCA_EXTERNAL_MUX_COMPILER_DIRS=$EXTERNAL_MUX_COMPILER_DIRS -DCA_MUX_COMPILERS_TO_ENABLE=$MUX_COMPILERS_TO_ENABLE -DCA_RISCV_ENABLED=ON -DCA_CL_DISABLE_UNITCL_VECZ_CHECKS=$DISABLE_VECZ_CHECKS -DCA_CL_ENABLE_RVV_SCALABLE_VECZ_CHECK=ON -DCA_CL_ENABLE_RVV_SCALABLE_VP_VECZ_CHECK=ON -DOCL_EXTENSION_cl_khr_command_buffer=ON -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=ON -DCA_USE_LINKER=gold -DHAL_DESCRIPTION=$HAL_DESCRIPTION -DHAL_REFSI_SOC=$HAL_REFSI_SOC -DHAL_REFSI_THREAD_MODE=$HAL_REFSI_THREAD_MODE
+    - run: python -u scripts/storage.py pull artefact.ca-opencl-cts --verbose --clean --path CA-OpenCL-CTS Ubuntu20 x86_64 14 Release
+    - run: python scripts/testing/run_cities.py -s scripts/jenkins/cts_summary/opencl_conformance_tests_wimpy_very_quick.csv -b CA-OpenCL-CTS/bin -e "CA_RISCV_VF=1,S,VP" -e OCL_ICD_FILENAMES=$PWD/build/lib/libCL.so -e OCL_ICD_VENDORS=/dev/null -L build/lib --timeout 00:10:00 --verbose -l build/cts.log -f build/cts.fail -r build/cts_riscv_1svp.xml
+    - run: ninja -C build check-ock-UnitCL-group-vecz
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+    - uses: actions/upload-artifact@v4.1.0
+      if: success()
+      with:
+        name: "${{ github.job }}"
+        path: |-
+          oneapi-construction-kit/build/*.fail
+          oneapi-construction-kit/build/*.log
+  mr-ubuntu-gcc-x86_64-riscv-fp16-cl3-0:
+    needs: mr-run-riscv-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+      LLVM_VERSION: "$LLVM_LATEST"
+      EXTERNAL_MUX_COMPILER_DIRS: "${{ github.workspace }}/oneapi-construction-kit/examples/refsi/refsi_m1/compiler/refsi_m1"
+      MUX_COMPILERS_TO_ENABLE: riscv
+      HAL_DESCRIPTION: RV64GCV_Zfh
+      HAL_REFSI_SOC: G1
+      HAL_REFSI_THREAD_MODE: WG
+      TARGET: check-ock
+      DISABLE_VECZ_CHECKS: 'ON'
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: python -u scripts/build.py -Bbuild -GNinja --verbose --clean --build_type ReleaseAssert --artefact_name $LLVM_VERSION --target $TARGET -DCA_ENABLE_HOST_IMAGE_SUPPORT=OFF -DCA_ENABLE_API=cl -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_MUX_TARGETS_TO_ENABLE="riscv" -DCA_EXTERNAL_MUX_COMPILER_DIRS=$EXTERNAL_MUX_COMPILER_DIRS -DCA_MUX_COMPILERS_TO_ENABLE=$MUX_COMPILERS_TO_ENABLE -DCA_RISCV_ENABLED=ON -DCA_CL_DISABLE_UNITCL_VECZ_CHECKS=$DISABLE_VECZ_CHECKS -DCA_CL_ENABLE_RVV_SCALABLE_VECZ_CHECK=ON -DCA_CL_ENABLE_RVV_SCALABLE_VP_VECZ_CHECK=ON -DOCL_EXTENSION_cl_khr_command_buffer=ON -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=ON -DCA_USE_LINKER=gold -DHAL_DESCRIPTION=$HAL_DESCRIPTION -DHAL_REFSI_SOC=$HAL_REFSI_SOC -DHAL_REFSI_THREAD_MODE=$HAL_REFSI_THREAD_MODE
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-gcc-x86_64-riscv-fp16-cl3-0-unitcl_vecz:
+    needs: mr-run-riscv-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+      LLVM_VERSION: "$LLVM_LATEST"
+      EXTERNAL_MUX_COMPILER_DIRS: "${{ github.workspace }}/oneapi-construction-kit/examples/refsi/refsi_m1/compiler/refsi_m1"
+      MUX_COMPILERS_TO_ENABLE: riscv
+      HAL_DESCRIPTION: RV64GCV_Zfh
+      HAL_REFSI_SOC: G1
+      HAL_REFSI_THREAD_MODE: WG
+      TARGET: check-ock-UnitCL-group-vecz
+      DISABLE_VECZ_CHECKS: 'OFF'
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: python -u scripts/build.py -Bbuild -GNinja --verbose --clean --build_type ReleaseAssert --artefact_name $LLVM_VERSION --target $TARGET -DCA_ENABLE_HOST_IMAGE_SUPPORT=OFF -DCA_ENABLE_API=cl -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_MUX_TARGETS_TO_ENABLE="riscv" -DCA_EXTERNAL_MUX_COMPILER_DIRS=$EXTERNAL_MUX_COMPILER_DIRS -DCA_MUX_COMPILERS_TO_ENABLE=$MUX_COMPILERS_TO_ENABLE -DCA_RISCV_ENABLED=ON -DCA_CL_DISABLE_UNITCL_VECZ_CHECKS=$DISABLE_VECZ_CHECKS -DCA_CL_ENABLE_RVV_SCALABLE_VECZ_CHECK=ON -DCA_CL_ENABLE_RVV_SCALABLE_VP_VECZ_CHECK=ON -DOCL_EXTENSION_cl_khr_command_buffer=ON -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=ON -DCA_USE_LINKER=gold -DHAL_DESCRIPTION=$HAL_DESCRIPTION -DHAL_REFSI_SOC=$HAL_REFSI_SOC -DHAL_REFSI_THREAD_MODE=$HAL_REFSI_THREAD_MODE
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-gcc-x86_64-refsi-g1-wi-cl3-0:
+    needs: mr-run-riscv-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+      LLVM_VERSION: "$LLVM_LATEST"
+      EXTERNAL_MUX_COMPILER_DIRS: "${{ github.workspace }}/oneapi-construction-kit/examples/refsi/refsi_g1_wi/compiler/refsi_g1_wi"
+      MUX_COMPILERS_TO_ENABLE: refsi_g1_wi
+      HAL_DESCRIPTION: RV64GCV
+      HAL_REFSI_SOC: G1
+      HAL_REFSI_THREAD_MODE: WI
+      TARGET: install
+      DISABLE_VECZ_CHECKS: 'ON'
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: python -u scripts/build.py -Bbuild -GNinja --verbose --clean --build_type ReleaseAssert --artefact_name $LLVM_VERSION --target $TARGET -DCA_ENABLE_HOST_IMAGE_SUPPORT=OFF -DCA_ENABLE_API=cl -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_MUX_TARGETS_TO_ENABLE="riscv" -DCA_EXTERNAL_MUX_COMPILER_DIRS=$EXTERNAL_MUX_COMPILER_DIRS -DCA_MUX_COMPILERS_TO_ENABLE=$MUX_COMPILERS_TO_ENABLE -DCA_RISCV_ENABLED=ON -DCA_CL_DISABLE_UNITCL_VECZ_CHECKS=$DISABLE_VECZ_CHECKS -DCA_CL_ENABLE_RVV_SCALABLE_VECZ_CHECK=ON -DCA_CL_ENABLE_RVV_SCALABLE_VP_VECZ_CHECK=ON -DOCL_EXTENSION_cl_khr_command_buffer=ON -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=ON -DCA_USE_LINKER=gold -DHAL_DESCRIPTION=$HAL_DESCRIPTION -DHAL_REFSI_SOC=$HAL_REFSI_SOC -DHAL_REFSI_THREAD_MODE=$HAL_REFSI_THREAD_MODE
+    - run: python -u scripts/storage.py pull artefact.ca-opencl-cts --verbose --clean --path CA-OpenCL-CTS Ubuntu20 x86_64 14 Release
+    - run: echo 'Subgroups,subgroups/test_subgroups barrier_functions_core' >> skipped.txt
+    - run: python scripts/testing/run_cities.py -s scripts/jenkins/cts_summary/opencl_conformance_tests_wimpy_very_quick.csv -i skipped.txt -b CA-OpenCL-CTS/bin -L build/lib -e OCL_ICD_FILENAMES=$PWD/build/lib/libCL.so -e OCL_ICD_VENDORS=/dev/null --timeout 00:10:00 --verbose -l build/cts.log -f build/cts.fail -r build/cts_refsi_g1_wi.xml
+    - run: ninja -C build check-ock
+    - run: ninja -C build check-ock-UnitCL-half
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+    - uses: actions/upload-artifact@v4.1.0
+      if: success()
+      with:
+        name: "${{ github.job }}"
+        path: |-
+          oneapi-construction-kit/build/*.fail
+          oneapi-construction-kit/'build/*.log'
+  mr-ubuntu-gcc-x86_64-clik:
+    needs: mr-run-host-ubuntu-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: cmake -Bbuild_clik -GNinja -DCMAKE_INSTALL_PREFIX=install clik
+    - run: LD_PRELOAD=/lib/x86_64-linux-gnu/libpthread.so.0 ninja -Cbuild_clik check
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-gcc-x86_64-clik-refsi:
+    needs: mr-run-host-ubuntu-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: cmake -Bbuild_clik -GNinja -DCMAKE_INSTALL_PREFIX=install -DCLIK_HAL_NAME=refsi -DHAL_REFSI_SOC=M1 -DCLIK_EXTERNAL_HAL_DIR=${{ github.workspace }}/oneapi-construction-kit/examples/refsi/hal_refsi clik
+    - run: LD_PRELOAD=/lib/x86_64-linux-gnu/libpthread.so.0 ninja -Cbuild_clik check
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-gcc-x86_64-refsi-tutorial-end:
+    needs: mr-run-riscv-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+      LLVM_VERSION: "$LLVM_LATEST"
+      EXTERNAL_MUX_COMPILER_DIRS: "${{ github.workspace }}/oneapi-construction-kit/examples/refsi/refsi_m1/compiler/refsi_m1"
+      MUX_COMPILERS_TO_ENABLE: riscv
+      TARGET: install
+      ONEAPI_CON_KIT_DIR: "${{ github.workspace }}/oneapi-construction-kit"
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: pip install cookiecutter
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: scripts/setup_new_target_tutorial.sh -s end -e /refsi_tutorial -f "refsi_wrapper_pass;clmul;replace_mem" $PWD
+    - run: cd /refsi_tutorial
+    - run: python -u $ONEAPI_CON_KIT_DIR/scripts/build.py -Bbuild -GNinja --verbose --clean --build_type ReleaseAssert --artefact_name $LLVM_VERSION --target $TARGET --source_dir $PWD -DCA_ENABLE_HOST_IMAGE_SUPPORT=OFF -DCA_ENABLE_API=cl -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_MUX_TARGETS_TO_ENABLE="refsi_tutorial" -DCA_REFSI_TUTORIAL_ENABLED=ON -DCA_USE_LINKER=gold -DCA_CL_ENABLE_OFFLINE_KERNEL_TESTS=OFF -DCA_EXTERNAL_ONEAPI_CON_KIT_DIR=$ONEAPI_CON_KIT_DIR -DCA_EXTERNAL_REFSI_TUTORIAL_HAL_DIR=$PWD/hal_refsi_tutorial
+    - run: ninja -Cbuild check-ock-refsi_tutorial-lit
+    - run: OCL_ICD_VENDORS=/dev/null OCL_ICD_FILENAMES=$PWD/build/oneAPIConstructionKit/lib/libCL.so $PWD/build/oneAPIConstructionKit/bin/UnitCL --gtest_filter=Execution/Execution.Task_01_02_Add/OpenCLC
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-gcc-x86_64-cpu:
+    needs: mr-run-host-ubuntu-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+      TARGET: check-ock-UnitCL
+      ONEAPI_CON_KIT_DIR: "${{ github.workspace }}/oneapi-construction-kit"
+      LLVM_VERSION: "$LLVM_LATEST"
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: pip install cookiecutter
+    - run: python -u scripts/create_target.py $PWD scripts/new_target_templates/cpu_x86.json --external-dir /cpu_hal_ock
+    - run: cd /cpu_hal_ock
+    - run: $ONEAPI_CON_KIT_DIR/scripts/build.py -Bbuild -GNinja --verbose --clean --build_type ReleaseAssert --artefact_name $LLVM_VERSION --target $TARGET --source_dir $PWD -DCA_ENABLE_HOST_IMAGE_SUPPORT=OFF -DCA_ENABLE_API=cl -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_MUX_TARGETS_TO_ENABLE="cpu" -DCA_CPU_ENABLED=ON -DCA_USE_LINKER=gold -DCA_CL_ENABLE_OFFLINE_KERNEL_TESTS=ON -DCA_EXTERNAL_ONEAPI_CON_KIT_DIR=$ONEAPI_CON_KIT_DIR -DCA_EXTERNAL_CPU_HAL_DIR=$ONEAPI_CON_KIT_DIR/clik/external/hal_cpu
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-gcc-x86_64-refsi-tutorial-start:
+    needs: mr-run-riscv-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+      LLVM_VERSION: "$LLVM_LATEST"
+      EXTERNAL_MUX_COMPILER_DIRS: "${{ github.workspace }}/oneapi-construction-kit/examples/refsi/refsi_m1/compiler/refsi_m1"
+      MUX_COMPILERS_TO_ENABLE: riscv
+      ONEAPI_CON_KIT_DIR: "${{ github.workspace }}/oneapi-construction-kit"
+      TARGET: install
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: pip install cookiecutter
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: scripts/setup_new_target_tutorial.sh -s start -e /refsi_tutorial $PWD
+    - run: cd /refsi_tutorial
+    - run: python -u $ONEAPI_CON_KIT_DIR/scripts/build.py -Bbuild -GNinja --verbose --clean --build_type ReleaseAssert --artefact_name $LLVM_VERSION --target $TARGET --source_dir $PWD -DCA_ENABLE_HOST_IMAGE_SUPPORT=OFF -DCA_ENABLE_API=cl -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_MUX_TARGETS_TO_ENABLE="refsi_tutorial" -DCA_REFSI_TUTORIAL_ENABLED=ON -DCA_USE_LINKER=gold -DCA_CL_ENABLE_OFFLINE_KERNEL_TESTS=OFF -DCA_EXTERNAL_ONEAPI_CON_KIT_DIR=$ONEAPI_CON_KIT_DIR -DCA_EXTERNAL_REFSI_TUTORIAL_HAL_DIR=$PWD/hal_refsi_tutorial
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-windows-msvc-x86_64-llvm-previous-cl3-0-images:
+    needs: mr-run-host-windows-
+    runs-on: windows-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/windows:10-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    continue-on-error: true
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'ON'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: vs2019
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: git submodule update --init --recursive
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: source/cl/tools/icd-register.ps1 "$env:CI_PROJECT_DIR/oneapi-construction-kit/build/bin/CL.dll"
+    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --artefact_name $LLVMBranch --target $Target -DCA_CL_ENABLE_ICD_LOADER=ON "-DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images" "-DOCL_EXTENSION_cl_intel_unified_shared_memory=$USM" "-DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer" "-DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer"
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-windows-msvc-x86_64-llvm-previous-cl3-0-offline:
+    needs: mr-run-host-windows-
+    runs-on: windows-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/windows:10-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    continue-on-error: true
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: vs2019
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: git submodule update --init --recursive
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: source/cl/tools/icd-register.ps1 "$env:CI_PROJECT_DIR/oneapi-construction-kit/build/bin/CL.dll"
+    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --artefact_name $LLVMBranch --target $Target -DCA_CL_ENABLE_ICD_LOADER=ON "-DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images" "-DOCL_EXTENSION_cl_intel_unified_shared_memory=$USM" "-DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer" "-DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer"
+    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --binary_dir build_offline --target check-ock --offline_only --external_clc "${{ github.workspace }}/oneapi-construction-kit/build/bin/clc.exe" -DCA_CL_ENABLE_ICD_LOADER=ON "-DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images" "-DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer" "-DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer"
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+  mr-ubuntu-build-ock-in-tree-llvm-17-0-6:
+    needs: mr-run-host-ubuntu-
+    runs-on: ubuntu-latest
+    container:
+      image: "$CI_REGISTRY/computeaorta/ci/ubuntu:20.04-x86_64"
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      GIT_STRATEGY: clone
+      OCK_BRANCH: main
+      GITHUB_USER: codeplaysoftware
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      RUN_DOC: '1'
+      RUN_BUILD_TEST: '1'
+      MR_TARGET_BRANCH: main
+      BuildType: ReleaseAssert
+      Arch: x86_64
+      LLVMBranch: "$LLVM_PREVIOUS"
+      Target: check-ock
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: gcc-9
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 50
+        lfs: true
+    - run: echo cloning "https://github.com/codeplaysoftware/oneapi-construction-kit.git"
+    - run: git clone https://github.com/codeplaysoftware/oneapi-construction-kit.git -b $MR_TARGET_BRANCH
+    - run: cd oneapi-construction-kit
+    - run: echo adding "https://github.com/$GITHUB_USER/oneapi-construction-kit.git" as a remote
+    - run: git remote add github-user https://github.com/$GITHUB_USER/oneapi-construction-kit.git
+    - run: git config user.name "${{ github.actor }}"
+    - run: git config user.email "${{ github.actor }}"
+    - run: git fetch github-user
+    - run: echo merging $OCK_BRANCH into $MR_TARGET_BRANCH
+    - run: git merge github-user/"$OCK_BRANCH"
+    - run: git log -1
+    - run: cp -r ../scripts/*.* scripts
+    - run: cd ..
+    - run: git clone https://github.com/llvm/llvm-project.git -b llvmorg-17.0.6 --depth 1
+    - run: cd llvm-project
+    - run: cmake -S llvm -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=clang -DLLVM_TARGETS_TO_BUILD="X86;AArch64;ARM;RISCV" -DLLVM_EXTERNAL_PROJECTS=ock -DLLVM_EXTERNAL_OCK_SOURCE_DIR=$PWD/../oneapi-construction-kit
+    - run: ninja -C build check-ock-vecz-lit
+#     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
