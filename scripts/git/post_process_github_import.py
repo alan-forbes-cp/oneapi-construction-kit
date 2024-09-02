@@ -5,8 +5,29 @@ import shlex # does this handle corresponding windows command lines ??
 import yaml
 
 def verbose(str):
-    if True:
+    if False: # replace with cl option
        print(str)
+
+def print_preamble():
+    print("""
+env:
+  CXXCompiler: llvm_install/bin/clang++
+steps:
+# checkout to code directory
+- name: Checkout repo
+  uses: actions/checkout@v4.1.0
+  with:
+    path: code
+# copy .github to workspace top level
+- run: cp -R code/.github .github
+# setup ubuntu now includes vulcan sdk
+- name: setup-ubuntu
+  # installs tools, ninja, installs llvm and sets up sccache
+  uses:  ./.github/actions/setup_ubuntu_build
+  with:
+    llvm_version: 17
+    llvm_build_type: RelAssert
+ - run: pwd && ls -al""")
 
 def ignore(substring):
     ignore_list = [ "python",
@@ -20,6 +41,7 @@ def ignore(substring):
 
 def translate(command):
     ignore_arg = False
+    got_option = False
     command_buffer_is_set = False # should only be set once
 
     print("""
@@ -38,6 +60,7 @@ def translate(command):
        elif ignore_arg:
           verbose("     # - Ignoring arg '" + substr + "'")
           ignore_arg = False
+          got_option = False
        elif substr.startswith('-D'):
           #print(substr)
           #print("  # -D option")
@@ -76,9 +99,11 @@ def translate(command):
              else:
                 verbose("     # Ignoring option '" + substr + "'")
           elif substr.startswith('-DCA_USE_LINKER='):
-             verbose("     # Ignoring option '" + substr + "'") # not yet supported in Github build action 
+             verbose("     # Translating '" + substr + "'")
+             print("    use_linker: gold")
           else:
-             print("     # ERROR: '" + substr + " IS UNKNOWN'")
+             print("     # ERROR: '" + substr + "' IS UNKNOWN'")
+          got_option = True
        elif substr.startswith('-'):
           #print(substr)
           #print("  # - option")
@@ -90,8 +115,8 @@ def translate(command):
              ignore_arg = True
           elif substr == "--compiler":
              verbose("     # Translating '" + substr + "'")
-             print("    c_compiler: $GITHUB_WORKSPACE/$Compiler")
-             print("    cxx_compiler: $GITHUB_WORKSPACE/$CXXCompiler")  # this needs added as a new Github env var
+             # $CXXCompiler needs added as a new Github env var
+             print("    extra_flags: $GITHUB_WORKSPACE/$Compiler $GITHUB_WORKSPACE/$CXXCompiler")  
              ignore_arg = True
           elif substr == "--artefact_name":
              verbose("     # Ignoring option '" + substr + "'") # not yet supported in Github build action
@@ -108,9 +133,14 @@ def translate(command):
              verbose("     # Ignoring option '" + substr + "'") # not yet supported in Github build action
              ignore_arg = True
           else:
-             print("     # ERROR: '" + substr + " IS UNKNOWN'")
-       else: # its an arg to a previous option
-          print(substr)
+             print("     # ERROR: '" + substr + "' IS UNKNOWN'")
+          got_option = True
+       else: # its an arg to a previous option else orphaned arg (likely 'import' tool added whitespace)
+          if got_option:
+             print(substr)
+          else:
+             print("ERROR: '" + substr + "' IS AN ORPHANED ARG")
+          got_option = False
 
 def main():
     with open('ci-github-mrexport.yml', 'r') as file:
@@ -120,12 +150,14 @@ def main():
           print(e)
     #print(yaml.dump(content))
     for jobname in content['jobs']:
-       print("\n======== " + jobname + " ========")
+       print("\n# ======== " + jobname + " ========")
+       print("\n# -------- preamble --------")
+       print_preamble()
        job = content['jobs'][jobname]
        for step in job['steps']:
           if command := step.get('run'):
              if re.search(".*python.*build\.py.*", command):
-                print("\n-------- build.py --------")
+                print("\n# -------- build.py --------")
                 #print(command)
                 #print(shlex.split(command))
                 translate(command)
