@@ -1,0 +1,82 @@
+name: ComputeAorta/ci-github-mrexport
+on:
+  push:
+# main only?
+#    branches:
+#      - main
+  workflow_dispatch:
+concurrency:
+  group: "${{ github.ref }}"
+  cancel-in-progress: true
+#env:
+  #  All imported env: settings at this levels are deleted
+jobs:
+  mr-ubuntu-clang-x86-llvm-previous-cl3-0-offline:
+    runs-on: ubuntu-22.04
+    if: ${{ github.event_name }} == "merge_request_event" && $RUN_BUILD_TEST == "1"
+    timeout-minutes: 60
+    env:
+      # Retain only imported env: settings at this levels that are actually used somewhere in the job
+      RUN_BUILD_TEST: '1'
+      BuildType: ReleaseAssert
+      Images: 'OFF'
+      CommandBuffer: 'ON'
+      USM: 'ON'
+      FP16: 'OFF'
+      Compiler: llvm_install/bin/clang
+      # CXXCompiler is new
+      CXXCompiler: llvm_install/bin/clang++
+    steps:
+    # checkout to code directory
+    - name: Checkout repo
+      uses: actions/checkout@v4.1.0
+      with:
+        path: code
+    # copy .github to workspace top level
+    - run: cp -R code/.github .github
+    # setup ubuntu now includes vulcan sdk
+    - name: setup-ubuntu
+      # installs tools, ninja, installs llvm and sets up sccache
+      uses:  ./.github/actions/setup_ubuntu_build
+      with:
+        llvm_version: 17
+        llvm_build_type: RelAssert
+    - run: pwd && ls -al
+
+# fyi: ORIGINAL build.py COMMAND LINE:
+# python -u scripts/build.py -GNinja --verbose --clean --build_type $BuildType --arch $Arch --compiler $Compiler --artefact_name $LLVMBranch --target $Target -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=$Images -DCA_HOST_ENABLE_BUILTIN_KERNEL=ON -DCA_HOST_ENABLE_BUILTINS_EXTENSION=ON -DCA_HOST_ENABLE_FP16=$FP16 -DCA_ASSEMBLE_SPIRV_LL_LIT_TESTS_OFFLINE=OFF -DOCL_EXTENSION_cl_intel_unified_shared_memory=$USM -DOCL_EXTENSION_cl_khr_command_buffer=$CommandBuffer -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=$CommandBuffer -DCA_USE_LINKER=gold
+# ... GETS CONVERTED TO THE cmake/ninja CALLS USED IN THE do-build_ock ACTION (WHICH IS INSTANTIATED BY THE SETTINGS BELOW)
+
+    #  call build ock action - overwriting any defaults
+    - name: build ock
+      uses: ./.github/actions/do_build_ock
+      with:
+#        assemble_spirv_ll_lit_test_offline:
+        build_dir: $GITHUB_WORKSPACE/build
+        # NOTE: set a temp target for development purposes only. build_targets: check-ock
+        build_targets: check-ock-all-lit
+        build_type: $BuildType
+        command_buffer: $CommandBuffer
+        debug_support: ON
+#        enable_api:
+#        enable_rvv_scalable_vecz_check:
+#        enable_rvv_scalable_VP_vecz_check:
+#        external_compiler_dirs:
+        extra_flags: -DCMAKE_C_COMPILER=$GITHUB_WORKSPACE/$Compiler -DCMAKE_CXX_COMPILER=$GITHUB_WORKSPACE/$CXXCompiler
+#        hal_description:
+#        hal_refsi_soc:
+        host_fp16: $FP16
+        host_image: $Images
+        host_enable_builtins: ON
+        install_dir: $GITHUB_WORKSPACE/install
+        llvm_install_dir: $GITHUB_WORKSPACE/llvm_install
+#        mux_compilers_enable:
+#        mux_targets_enable:
+#        offline_kernel_tests:
+        path: $GITHUB_WORKSPACE/code
+#        riscv_enabled:
+        use_linker:
+        usm: $USM
+    - run: pwd && ls -al
+
+# 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
