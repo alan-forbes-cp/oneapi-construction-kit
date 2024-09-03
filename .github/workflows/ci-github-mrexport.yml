@@ -164,7 +164,7 @@ jobs:
     - run: git log -1
     - run: cp -r ../scripts/*.* scripts
     - run: env
-    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type ReleaseAssert --artefact_name ${{ matrix.LLVM_VERSION }} -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=ON -DOCL_EXTENSION_cl_khr_command_buffer=ON -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=ON --target build.ninja
+    - run: python -u scripts/build.py -GNinja --verbose --clean --build_type ReleaseAssert --artefact_name "${{ matrix.LLVM_VERSION }}" -DCA_CL_ENABLE_ICD_LOADER=ON -DCA_ENABLE_HOST_IMAGE_SUPPORT=ON -DOCL_EXTENSION_cl_khr_command_buffer=ON -DOCL_EXTENSION_cl_khr_command_buffer_mutable_dispatch=ON --target build.ninja
     - run: ninja -C build $(ninja -C build -t targets all | sed -nE 's/(\.cpp|\.h):.*/\1/p')
     - run: ./scripts/compute-dependants.py --exclude-filter='(/build/.*\.s$)|(source/cl/test/OpenCL-CTS)|(.*/(external|cookie)/.*)' --build-dir="${{ github.workspace }}/oneapi-construction-kit/build" `git diff --name-only --diff-filter=d origin/$MR_TARGET_BRANCH..HEAD | grep -P '\.(c|cc|cxx|cpp|h|hh|hpp|hxx)$'` | tee /dev/stderr | parallel --verbose -- clang-tidy-17 --quiet -p "${{ github.workspace }}/oneapi-construction-kit/build/" "{}"
   mr-doc-pdf:
