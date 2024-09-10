@@ -221,7 +221,8 @@ def translate(command):
 def check_for_build_py(command):
     global translation_str
     translation_str = ""
-    if re.search(".*python.*build\.py.*", command):
+    #if re.search(".*python.*build\.py.*", command):
+    if re.search(".*scripts/build\.py.*", command):
        #print("\n# -------- build.py --------")
        #print(command)
        #print(shlex.split(command))
@@ -251,8 +252,7 @@ def main():
           print(e)
     #print(yaml.safe_dump(content, width=float("inf")))
 
-#env:
-#  CXXCompiler: llvm_install/bin/clang++
+    # ADDITIONS / REPLACEMENTS / DELETIONS
 
     found_steps_keys = []
     for key, value, path in lookup_key("steps", content): # value needed?
@@ -260,7 +260,14 @@ def main():
        found_steps_keys.append(key)
 
     for steps_key in found_steps_keys: 
+
+       # import tool adds its own checkout boilerplate in step[0] - delete prior to adding our own
+       print("### " + str(steps_key["steps"][0]))
+       del(steps_key["steps"][0])
+
        # append boilerplate steps in reverse order
+       steps_key["steps"] = [ { "run": "pwd && ls -al",
+                              } ] + steps_key["steps"]
        steps_key["steps"] = [ { "name": "setup-ubuntu",
                                 "uses":  "./.github/actions/setup_ubuntu_build",
                                 "with": { "llvm_version": "17",
@@ -272,8 +279,6 @@ def main():
        steps_key["steps"] = [ { "name": "Checkout repo", 
                                 "uses": "actions/checkout@v4.1.0", 
                                 "with": { "path": "code", } 
-                              } ] + steps_key["steps"]
-       steps_key["steps"] = [ { "run": "pwd && ls -al",
                               } ] + steps_key["steps"]
 
        # "env" keys are found at two levels - take advantage of the "steps" keys 
@@ -322,24 +327,47 @@ def main():
                     steps_path[i].update(build_action[0])
                     break 
 
-    print(yaml.safe_dump(content, width=float("inf")))
+    print("### " + str(content["env"]))
+    del(content["env"]) # all top-level envs can go
 
-    return
+    regex_list = [ " container:",
+                   " image:",
+                   " GITHUB_USER: codeplaysoftware",
+                   " GIT_STRATEGY: clone",
+                   "[:-] echo cloning.*oneapi-construction-kit.*",
+                   "[:-] git clone.*oneapi-construction-kit.*",
+                   "[:-] cd oneapi-construction-kit",
+                   "[:-] echo adding",
+                   "[:-] git remote",
+                   "[:-] git config user",
+                   "[:-] git fetch",
+                   "[:-] echo merging",
+                   "[:-] git merge",
+                   "[:-] git log",
+                   "[:-] cp -r",
+                   "- run: *$",  # no "run" lists
+    ]
+    for line in yaml.safe_dump(content, width=float("inf")).splitlines():
+       if any(re.search(regex, line) for regex in regex_list ):
+          print("###", end='')
+       print(line)
 
-    for jobname in content['jobs']:
-       print("\n# ======== " + jobname + " ========")
-       print("\n# -------- preamble --------")
-       print_preamble()
-       job = content['jobs'][jobname]
-       for step in job['steps']:
-          if command := step.get('run'):
-             if type(command) is str:
-                check_for_build_py(command)
-             elif type(command) is list:
-                for subcommand in command:
-                   check_for_build_py(subcommand)
-             else:
-                print("ERROR: UNKNOWN 'run' TYPE: ", type(command))
+    #print(yaml.safe_dump(content, width=float("inf")))
+
+#    for jobname in content['jobs']:
+#       print("\n# ======== " + jobname + " ========")
+#       print("\n# -------- preamble --------")
+#       print_preamble()
+#       job = content['jobs'][jobname]
+#       for step in job['steps']:
+#          if command := step.get('run'):
+#             if type(command) is str:
+#                check_for_build_py(command)
+#             elif type(command) is list:
+#                for subcommand in command:
+#                   check_for_build_py(subcommand)
+#             else:
+#                print("ERROR: UNKNOWN 'run' TYPE: ", type(command))
        
 if __name__ == "__main__":
     try:
