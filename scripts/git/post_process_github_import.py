@@ -3,31 +3,11 @@
 import re
 import shlex # does this handle corresponding windows command lines ??
 import yaml
+from yaml.resolver import Resolver
 
 def verbose(str):
     if True: # replace with cl option
        add_to_translation(str)
-
-def print_preamble():
-    print("""
-env:
-  CXXCompiler: llvm_install/bin/clang++
-steps:
-# checkout to code directory
-- name: Checkout repo
-  uses: actions/checkout@v4.1.0
-  with:
-    path: code
-# copy .github to workspace top level
-- run: cp -R code/.github .github
-# setup ubuntu now includes vulcan sdk
-- name: setup-ubuntu
-  # installs tools, ninja, installs llvm and sets up sccache
-  uses:  ./.github/actions/setup_ubuntu_build
-  with:
-    llvm_version: 17
-    llvm_build_type: RelAssert
-- run: pwd && ls -al""")
 
 def ignore(substring):
     ignore_list = [ re.compile("python"),
@@ -53,7 +33,7 @@ def add_to_translation(string, newline=True):
     else:
        translation_str += string
 
-def translate(command):
+def translate(command, build_type):
     ignore_arg = False
     got_option = False
     unknown_option = False
@@ -172,7 +152,9 @@ def translate(command):
           #print("  # - option")
           if substr == "--build_type":
              verbose("     # Translating '" + substr + " <ARG>'")
-             add_to_translation("    build_type: ", False)
+             # build_type is derived from job name suffix
+             add_to_translation("    build_type: " + build_type, False)
+             ignore_arg = True
           elif substr == "--arch":
              verbose("     # Translating '" + substr + " <ARG>'")
              add_to_translation("    arch: ", False)
@@ -218,7 +200,7 @@ def translate(command):
     if not set_build_dir:
        add_to_translation("""    build_dir: $GITHUB_WORKSPACE/build""")
 
-def check_for_build_py(command):
+def check_for_build_py(command, build_type):
     global translation_str
     translation_str = ""
     #if re.search(".*python.*build\.py.*", command):
@@ -226,7 +208,7 @@ def check_for_build_py(command):
        #print("\n# -------- build.py --------")
        #print(command)
        #print(shlex.split(command))
-       translate(command)
+       translate(command, build_type)
        return translation_str
     return None
     
@@ -245,24 +227,72 @@ def lookup_key(sk, d, path=[]):
                yield res
 
 def main():
+    # remove Yaml resolver entries for On/Off/Yes/No - treat as str not bool
+    # ...thank you Google (again) ...
+    for ch in "OoYyNn":
+        if len(Resolver.yaml_implicit_resolvers[ch]) == 1:
+            del Resolver.yaml_implicit_resolvers[ch]
+        else:
+            Resolver.yaml_implicit_resolvers[ch] = [x for x in
+                    Resolver.yaml_implicit_resolvers[ch] if x[0] != 'tag:yaml.org,2002:bool']
+
     with open('/home/alan/github/oneapi-construction-kit-alan/.github/workflows/ci-github-mrexport.yml', 'r') as file:
        try:
           content = yaml.safe_load(file)
        except yaml.YAMLError as e:
           print(e)
-    #print(yaml.safe_dump(content, width=float("inf")))
+    #print(yaml.safe_dump(content, sort_keys=False, width=float("inf")))
 
-    # ADDITIONS / REPLACEMENTS / DELETIONS
+    # ADDITIONS / REPLACEMENTS / DELETIONS VIA YAML
+
+    # all jobs with names ending "-" can go - delete key
+    found_jobs_keys = []
+    for job in content["jobs"]:
+       if re.search(".*-$", job):
+          found_jobs_keys.append(job)
+
+    for job in found_jobs_keys:
+       del(content["jobs"][job])
+
+    # all top-level envs can go - delete key
+    #print("### " + str(content["env"]))
+    del(content["env"])
+
+    # new "on" key setting - note workflow_dispatch is None
+    content["on"] = [ { "pull_request": { "paths": [ 'source/**',
+                                                     'clik/**',
+                                                     'modules/**',
+                                                     'examples/**',
+                                                     'cmake/**',
+                                                     'hal/**',
+                                                     '.github/actions/do_build_ock/**',
+                                                     '.github/actions/setup_ubuntu_build/**',
+                                                     '.github/workflows/run_pr_tests.yml',
+                                                     'CMakeLists.txt',
+                                                   ]
+                                        },
+                      },
+                      { "workflow_dispatch": None,
+                      }
+                    ]
+
+    # update PR group
+    content["concurrency"]["group"] = "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
 
     found_steps_keys = []
     for key, value, path in lookup_key("steps", content): # value needed?
        # save found items to list here - avoids in-situ update issues
-       found_steps_keys.append(key)
+       found_steps_keys.append((key, path))
 
-    for steps_key in found_steps_keys: 
+    for steps_key, path in found_steps_keys:
+       # set llvm_build_type from job name suffix
+       llvm_build_type =  "RelAssert"
+       for jobname in path:
+         if re.search("mr-.*-release", jobname):
+           llvm_build_type =  "Release"
+           break
 
        # import tool adds its own checkout boilerplate in step[0] - delete prior to adding our own
-       print("### " + str(steps_key["steps"][0]))
        del(steps_key["steps"][0])
 
        # append boilerplate steps in reverse order
@@ -271,7 +301,7 @@ def main():
        steps_key["steps"] = [ { "name": "setup-ubuntu",
                                 "uses":  "./.github/actions/setup_ubuntu_build",
                                 "with": { "llvm_version": "17",
-                                          "llvm_build_type": "RelAssert",
+                                          "llvm_build_type": llvm_build_type,
                                         },
                               } ] + steps_key["steps"]
        steps_key["steps"] = [ { "run": "cp -R code/.github .github", 
@@ -285,29 +315,36 @@ def main():
        # being at the same level as "jobs env" keys to update any job env vars here too
        steps_key["env"].update({ "CXXCompiler": "llvm_install/bin/clang++", })
 
+       # ...similarly ... ubuntu version ...
+       if re.search("ubuntu.*", steps_key["runs-on"]):
+          steps_key["runs-on"] = "ubuntu-22.04"
+
     found_run_keys = []
     for key, value, path in lookup_key("run", content): # value needed?
        # save found items to list here - avoids in-situ update issues
        found_run_keys.append((key, path))
 
     for run_key, steps_path in found_run_keys:
+       # set build_type from job name suffix
+       build_type =  "ReleaseAssert"
+       for jobname in steps_path:
+         if re.search("mr-.*-release", str(jobname)):
+           build_type =  "Release"
+           break
        if type(run_key["run"]) is list:
-          True # edge case - revisit if we want to support it
+          True
           #print("LIST: ", run_key["run"])
-          #list_items =[]
-          #for list_item in range(len(run_key["run"])):
-          #   list_items.append(run_key["run"][list_item])
-          #del(run_key['run']) 
-          #for list_item in list_items:
-          #   if yaml_str := check_for_build_py(list_item):
-          #      # swap build.py string for yaml equivalent
-          #      run_key['run'] = yaml_str
-          #   else:
-          #      run_key['run'] = list_item
+          # Placeholder for edge case:
+          # "run"s can be str or list. Currently the only "run" entry using list 
+          # format is (by happy accident) removed entirely by regex deletion below.
+          # However if we ever want to support list processing in this context we'll 
+          # need to revisit with a view to transfoming any significant string in the 
+          # "run" list (e.g. build.py call or similar) in-situ while honouring any 
+          # remaining list content before and/or after the transformed string.
        else: # str
           # find every "run" key with a build.py string value and
           # replace its key:value with a yaml 'build action' call
-          if yaml_str := check_for_build_py(run_key['run']):
+          if yaml_str := check_for_build_py(run_key['run'], build_type):
              # convert (plain text) build action yaml_str to yaml ...
              build_action = yaml.safe_load(yaml_str)
 # get the path to the "steps" list containing the key we want to replace
@@ -327,8 +364,7 @@ def main():
                     steps_path[i].update(build_action[0])
                     break 
 
-    print("### " + str(content["env"]))
-    del(content["env"]) # all top-level envs can go
+    # DELETIONS VIA PLAIN TEXT REGEX
 
     regex_list = [ " container:",
                    " image:",
@@ -345,30 +381,29 @@ def main():
                    "[:-] git merge",
                    "[:-] git log",
                    "[:-] cp -r",
-                   "- run: *$",  # no "run" lists
+                   "- run: *$",  # no "run" lists now so delete key
+                   'if: .*== "merge_request_event"',
+                   "RUN_BUILD_TEST:",
+                   "RUN_DOC:",
+                   "needs: ",
+                   "BuildType:", # now taken from job name suffix
+                   "LLVMBranch",
     ]
-    for line in yaml.safe_dump(content, width=float("inf")).splitlines():
-       if any(re.search(regex, line) for regex in regex_list ):
-          print("###", end='')
-       print(line)
+    only_job = "mr-ubuntu-gcc-x86_64-riscv-fp16-cl3-0-unitcl_vecz"
+    found_only_job = True
+    #found_only_job = False
+    for line in yaml.safe_dump(content, sort_keys=False, width=float("inf")).splitlines():
+       if re.search("^ *mr-.*: *$", line):
+          #if found_only_job := re.search(only_job, line):
+             print("\n############### JOB " + line + "\n")
+       if found_only_job:
+          if any(re.search(regex, line) for regex in regex_list ):
+             True #print("###", end='')
+          else:
+             print(line)
 
-    #print(yaml.safe_dump(content, width=float("inf")))
+    #print(yaml.safe_dump(content, sort_keys=False, width=float("inf")))
 
-#    for jobname in content['jobs']:
-#       print("\n# ======== " + jobname + " ========")
-#       print("\n# -------- preamble --------")
-#       print_preamble()
-#       job = content['jobs'][jobname]
-#       for step in job['steps']:
-#          if command := step.get('run'):
-#             if type(command) is str:
-#                check_for_build_py(command)
-#             elif type(command) is list:
-#                for subcommand in command:
-#                   check_for_build_py(subcommand)
-#             else:
-#                print("ERROR: UNKNOWN 'run' TYPE: ", type(command))
-       
 if __name__ == "__main__":
     try:
         main()
