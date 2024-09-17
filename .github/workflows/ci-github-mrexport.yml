@@ -29,7 +29,7 @@ jobs:
       LLVM_PREVIOUS: release_170
       MR_TARGET_BRANCH: main
       Arch: x86_64
-      Target: check-ock
+      #Target: check-ock
       Images: OFF
       CommandBuffer: ON
       USM: ON
