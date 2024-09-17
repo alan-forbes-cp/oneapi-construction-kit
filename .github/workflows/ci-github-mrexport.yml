@@ -12,7 +12,7 @@ on:
     - .github/actions/setup_ubuntu_build/**
     - .github/workflows/run_pr_tests.yml
     - CMakeLists.txt
-  workflow_dispatch: null
+  workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
