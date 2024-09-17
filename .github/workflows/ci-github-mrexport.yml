@@ -36,7 +36,7 @@ jobs:
       FP16: OFF
       Compiler: gcc-9
       LLVM_VERSION: $LLVM_LATEST
-      EXTERNAL_MUX_COMPILER_DIRS: ${{ github.workspace }}/oneapi-construction-kit/code/examples/refsi/refsi_m1/compiler/refsi_m1
+      EXTERNAL_MUX_COMPILER_DIRS: ${{ github.workspace }}/code/examples/refsi/refsi_m1/compiler/refsi_m1
       MUX_COMPILERS_TO_ENABLE: riscv
       HAL_DESCRIPTION: RV64GCV_Zfh
       HAL_REFSI_SOC: G1
