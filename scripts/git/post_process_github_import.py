@@ -38,6 +38,7 @@ def translate(command, build_type):
     got_option = False
     unknown_option = False
     set_build_dir = False
+    set_debug_support = False
     command_buffer_is_set = False # should only be set once
     add_to_translation("""
 # call build ock action - overwriting any defaults
@@ -111,7 +112,9 @@ def translate(command, build_type):
              add_to_translation("    host_image: " + darg)
           elif substr.startswith('-DCA_HOST_ENABLE_BUILTIN_KERNEL='):
              verbose("     # Translating '" + substr + "'")
-             add_to_translation("    debug_support: " + darg)
+             if build_type == "Release": # hard-wire debug ON unless a release build (?)
+                add_to_translation("    debug_support: " + darg)
+                set_debug_support = True
           elif substr.startswith('-DCA_HOST_ENABLE_BUILTINS_EXTENSION='):
              verbose("     # Translating '" + substr + "'")
              add_to_translation("    host_enable_builtins: " + darg)
@@ -198,7 +201,9 @@ def translate(command, build_type):
           got_option = False
 
     if not set_build_dir:
-       add_to_translation("""    build_dir: $GITHUB_WORKSPACE/build""")
+       add_to_translation("    build_dir: $GITHUB_WORKSPACE/build")
+    if not set_debug_support and build_type != "Release":
+       add_to_translation("    debug_support: ON")
 
 def check_for_build_py(command, build_type):
     global translation_str
@@ -226,6 +231,12 @@ def lookup_key(sk, d, path=[]):
            for res in lookup_key(sk, item, path + [item]):
                yield res
 
+def represent_none(self, _):
+    # ...thank you Google (again) ...
+    # Ensure **all** None values are dumped as blank
+    # i.e. blank in input, None once loaded, blank again when dumped
+    return self.represent_scalar('tag:yaml.org,2002:null', '')
+
 def main():
     # remove Yaml resolver entries for On/Off/Yes/No - treat as str not bool
     # ...thank you Google (again) ...
@@ -236,7 +247,11 @@ def main():
             Resolver.yaml_implicit_resolvers[ch] = [x for x in
                     Resolver.yaml_implicit_resolvers[ch] if x[0] != 'tag:yaml.org,2002:bool']
 
-    with open('/home/alan/github/oneapi-construction-kit-alan/.github/workflows/ci-github-mrexport.yml', 'r') as file:
+    # None becomes blank on dump
+    yaml.add_representer(type(None), represent_none)
+    yaml.representer.SafeRepresenter.add_representer(type(None), represent_none)
+
+    with open('/home/alan/github/oneapi-construction-kit-alan/.github/workflows/ci-github-mrexport.yml.import_plus_quotes', 'r') as file:
        try:
           content = yaml.safe_load(file)
        except yaml.YAMLError as e:
@@ -258,8 +273,10 @@ def main():
     #print("### " + str(content["env"]))
     del(content["env"])
 
-    # new "on" key setting - note workflow_dispatch is None
-    content["on"] = [ { "pull_request": { "paths": [ 'source/**',
+    # new "on" key setting
+    # Note: workflow_dispatch is blank in the input, None once loaded, and dumped as blank
+    #       see represent_none(), above
+    content["on"]["pull_request"] = { "paths" : [ 'source/**',
                                                      'clik/**',
                                                      'modules/**',
                                                      'examples/**',
@@ -269,12 +286,9 @@ def main():
                                                      '.github/actions/setup_ubuntu_build/**',
                                                      '.github/workflows/run_pr_tests.yml',
                                                      'CMakeLists.txt',
-                                                   ]
-                                        },
-                      },
-                      { "workflow_dispatch": None,
-                      }
-                    ]
+                                                ]
+                                    }
+    del(content["on"]["push"])
 
     # update PR group
     content["concurrency"]["group"] = "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
@@ -296,7 +310,7 @@ def main():
        del(steps_key["steps"][0])
 
        # append boilerplate steps in reverse order
-       steps_key["steps"] = [ { "run": "pwd && ls -al",
+       steps_key["steps"] = [ { "run": "echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al",
                               } ] + steps_key["steps"]
        steps_key["steps"] = [ { "name": "setup-ubuntu",
                                 "uses":  "./.github/actions/setup_ubuntu_build",
@@ -364,9 +378,9 @@ def main():
                     steps_path[i].update(build_action[0])
                     break 
 
-    # DELETIONS VIA PLAIN TEXT REGEX
+    # DUMP: INCLUDE DELETIONS VIA REGEX AND SEARCH&REPLACE VIA PLAIN TEXT
 
-    regex_list = [ " container:",
+    regex_deletions_list = [ " container:",
                    " image:",
                    " GITHUB_USER: codeplaysoftware",
                    " GIT_STRATEGY: clone",
@@ -389,18 +403,24 @@ def main():
                    "BuildType:", # now taken from job name suffix
                    "LLVMBranch",
     ]
-    only_job = "mr-ubuntu-gcc-x86_64-riscv-fp16-cl3-0-unitcl_vecz"
-    found_only_job = True
-    #found_only_job = False
+    regex_replacements_list = [
+                   ( "\${{ github.workspace }}/oneapi-construction-kit/build/",
+                      "${{ github.workspace }}/build/" ),
+                   ( "\${{ github.workspace }}/oneapi-construction-kit/examples/",
+                      "${{ github.workspace }}/code/examples/" ),
+                   ( "\${{ github.workspace }}/oneapi-construction-kit$",
+                      "${{ github.workspace }}" ),
+                   ( "\${{ github.workspace }}/oneapi-construction-kit/build\"",
+                      "${{ github.workspace }}/build\"" ),
+    ]
+
     for line in yaml.safe_dump(content, sort_keys=False, width=float("inf")).splitlines():
        if re.search("^ *mr-.*: *$", line):
-          #if found_only_job := re.search(only_job, line):
-             print("\n############### JOB " + line + "\n")
-       if found_only_job:
-          if any(re.search(regex, line) for regex in regex_list ):
-             True #print("###", end='')
-          else:
-             print(line)
+          print("\n############### JOB " + line + "\n")
+       if not any(re.search(regex, line) for regex in regex_deletions_list ):
+          for pattern, replacement in regex_replacements_list:
+             line = re.sub(pattern, replacement, line)
+          print(line)
 
     #print(yaml.safe_dump(content, sort_keys=False, width=float("inf")))
 
