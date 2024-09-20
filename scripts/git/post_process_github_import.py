@@ -402,6 +402,8 @@ def main():
                    "needs: ",
                    "BuildType:", # now taken from job name suffix
                    "LLVMBranch",
+                   "OCK_BRANCH:",
+                   "MR_TARGET_BRANCH:",
     ]
     regex_replacements_list = [
                    ( "\${{ github.workspace }}/oneapi-construction-kit/build/",
