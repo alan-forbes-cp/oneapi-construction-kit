@@ -24,10 +24,8 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     env:
-      OCK_BRANCH: main
       LLVM_LATEST: release_180
       LLVM_PREVIOUS: release_170
-      MR_TARGET_BRANCH: main
       Arch: x86_64
       Images: OFF
       CommandBuffer: ON
@@ -86,10 +84,8 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     env:
-      OCK_BRANCH: main
       LLVM_LATEST: release_180
       LLVM_PREVIOUS: release_170
-      MR_TARGET_BRANCH: main
       Arch: x86_64
       Images: OFF
       CommandBuffer: ON
@@ -139,5 +135,55 @@ jobs:
         hal_description: $HAL_DESCRIPTION
         hal_refsi_soc: $HAL_REFSI_SOC
         hal_refsi_thread_mode: $HAL_REFSI_THREAD_MODE
+        build_dir: $GITHUB_WORKSPACE/build
+        debug_support: ON
+
+############### JOB   mr-ubuntu-gcc-x86_64-cpu:
+
+  mr-ubuntu-gcc-x86_64-cpu:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    env:
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      Arch: x86_64
+      Images: OFF
+      CommandBuffer: ON
+      USM: ON
+      FP16: OFF
+      Compiler: gcc-9
+      TARGET: check-ock-UnitCL
+      ONEAPI_CON_KIT_DIR: ${{ github.workspace }}
+      LLVM_VERSION: $LLVM_LATEST
+      CXXCompiler: llvm_install/bin/clang++
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4.1.0
+      with:
+        path: code
+    - run: cp -R code/.github .github
+    - name: setup-ubuntu
+      uses: ./.github/actions/setup_ubuntu_build
+      with:
+        llvm_version: '18'
+        llvm_build_type: RelAssert
+    - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
+    - run: pip install cookiecutter
+    - run: python -u scripts/create_target.py $PWD scripts/new_target_templates/cpu_x86.json --external-dir /cpu_hal_ock
+    - run: cd /cpu_hal_ock
+    - name: build ock
+      uses: ./.github/actions/do_build_ock
+      with:
+        path: $GITHUB_WORKSPACE/code
+        install_dir: $GITHUB_WORKSPACE/install
+        llvm_install_dir: $GITHUB_WORKSPACE/llvm_install
+        build_type: ReleaseAssert
+        build_targets: $TARGET
+        host_image: OFF
+        enable_api: cl
+        mux_targets_enable: cpu
+        use_linker: gold
+        offline_kernel_tests: ON
+        oneapi_con_kit_dir: $ONEAPI_CON_KIT_DIR
         build_dir: $GITHUB_WORKSPACE/build
         debug_support: ON
