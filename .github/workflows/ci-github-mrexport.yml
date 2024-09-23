@@ -40,7 +40,7 @@ jobs:
       HAL_REFSI_THREAD_MODE: WG
       TARGET: check-ock-UnitCL-group-vecz
       DISABLE_VECZ_CHECKS: OFF
-      CXXCompiler: llvm_install/bin/clang++
+      CXXCompiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
@@ -100,7 +100,7 @@ jobs:
       HAL_REFSI_THREAD_MODE: WG
       TARGET: check-ock
       DISABLE_VECZ_CHECKS: ON
-      CXXCompiler: llvm_install/bin/clang++
+      CXXCompiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
@@ -153,9 +153,9 @@ jobs:
       FP16: OFF
       Compiler: gcc-9
       TARGET: check-ock-UnitCL
-      ONEAPI_CON_KIT_DIR: ${{ github.workspace }}
+      ONEAPI_CON_KIT_DIR: ${{ github.workspace }}/code
       LLVM_VERSION: $LLVM_LATEST
-      CXXCompiler: llvm_install/bin/clang++
+      CXXCompiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
@@ -187,3 +187,4 @@ jobs:
         oneapi_con_kit_dir: $ONEAPI_CON_KIT_DIR
         build_dir: $GITHUB_WORKSPACE/build
         debug_support: ON
+        extra_flags: -DCA_EXTERNAL_CPU_HAL_DIR=$ONEAPI_CON_KIT_DIR/clik/external/hal_cpu -DCA_CPU_ENABLED=ON
