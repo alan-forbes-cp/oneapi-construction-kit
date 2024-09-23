@@ -33,6 +33,7 @@ runs:
         if [ "$UBUNTU_VER" = "24.04" ]; then sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list https://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list; fi
         sudo apt-get update
         sudo apt-get install --yes vulkan-sdk
+        sudo apt-get install --yes gcc-11-multilib g++-11-multilib libc6-dev:i386 libtinfo-dev lib32tinfo-dev
 
     - name: Install Ninja
       uses: llvm/actions/install-ninja@main
