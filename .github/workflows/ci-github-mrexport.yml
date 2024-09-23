@@ -169,8 +169,8 @@ jobs:
         llvm_build_type: RelAssert
     - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
     - run: pip install cookiecutter
-    - run: python -u code/scripts/create_target.py $PWD/code code/scripts/new_target_templates/cpu_x86.json --external-dir /cpu_hal_ock
-    - run: cd /cpu_hal_ock
+    - run: python -u code/scripts/create_target.py $PWD/code code/scripts/new_target_templates/cpu_x86.json --external-dir $GITHUB_WORKSPACE/cpu_hal_ock
+    - run: cd $GITHUB_WORKSPACE/cpu_hal_ock
     - name: build ock
       uses: ./.github/actions/do_build_ock
       with:
