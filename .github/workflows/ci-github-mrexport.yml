@@ -205,7 +205,7 @@ jobs:
       USM: ON
       FP16: OFF
       Compiler: gcc-9
-      CXXCompiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
+      CXXCompiler: g++-9
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
@@ -237,3 +237,4 @@ jobs:
         command_buffer: $CommandBuffer
         use_linker: gold
         build_dir: $GITHUB_WORKSPACE/build
+        extra_flags: -DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9
