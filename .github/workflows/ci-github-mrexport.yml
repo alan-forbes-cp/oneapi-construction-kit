@@ -189,3 +189,51 @@ jobs:
         build_dir: $GITHUB_WORKSPACE/build
         debug_support: ON
         extra_flags: -DCA_EXTERNAL_CPU_HAL_DIR=$ONEAPI_CON_KIT_DIR/clik/external/hal_cpu -DCA_CPU_ENABLED=ON
+############### JOB   mr-ubuntu-gcc-x86-llvm-previous-cl3-0-release:
+
+  mr-ubuntu-gcc-x86-llvm-previous-cl3-0-release:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    env:
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      LLVM_VERSION: $LLVM_PREVIOUS
+      Arch: x86
+      TARGET: check-ock
+      Images: OFF
+      CommandBuffer: ON
+      USM: ON
+      FP16: OFF
+      Compiler: gcc-9
+      CXXCompiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4.1.0
+      with:
+        path: code
+    - run: cp -R code/.github .github
+    - name: setup-ubuntu
+      uses: ./.github/actions/setup_ubuntu_build
+      with:
+        llvm_version: '17'
+        llvm_build_type: Release
+    - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
+    - name: build ock
+      uses: ./.github/actions/do_build_ock
+      with:
+        path: $GITHUB_WORKSPACE/code
+        install_dir: $GITHUB_WORKSPACE/install
+        llvm_install_dir: $GITHUB_WORKSPACE/llvm_install
+        build_type: Release
+        arch: $Arch
+        #extra_flags: $GITHUB_WORKSPACE/$Compiler $GITHUB_WORKSPACE/$CXXCompiler
+        build_targets: $TARGET
+        host_image: $Images
+        debug_support: ON
+        host_enable_builtins: ON
+        host_fp16: $FP16
+        assemble_spirv_ll_lit_test_offline: OFF
+        usm: $USM
+        command_buffer: $CommandBuffer
+        use_linker: gold
+        build_dir: $GITHUB_WORKSPACE/build
