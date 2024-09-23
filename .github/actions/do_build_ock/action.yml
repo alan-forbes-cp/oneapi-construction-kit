@@ -5,7 +5,7 @@ description: Action to build the oneapi-construction-kit
 # overset cmake values
 inputs:
   path:
-    description: 'Override default path'
+    description: 'Change to PATH before building'
     default: '.'
   build_type:
     description: 'build type e.g Release, ReleaseAssert (default ReleaseAssert)'
@@ -117,6 +117,7 @@ runs:
         else
            ARCH="${ARCH}=OFF"
         fi
+        cd ${{ inputs.path }}
         set -x && cmake -GNinja \
               -B${{ inputs.build_dir }} \
               -DCMAKE_C_COMPILER_LAUNCHER=sccache \
@@ -154,7 +155,7 @@ runs:
               -DCA_CL_DISABLE_UNITCL_VECZ_CHECKS=${{ inputs.disable_unitcl_vecz_checks }} \
                $ARCH \
                ${{ inputs.extra_flags }} \
-               ${{ inputs.path }}
+               .
     - name: build_ock
       shell: bash
       run:
