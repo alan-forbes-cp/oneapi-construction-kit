@@ -158,5 +158,6 @@ runs:
                .
     - name: build_ock
       shell: bash
-      run:
+      run: |
+        cd ${{ inputs.path }}
         set -x && ninja -C ${{ inputs.build_dir }} ${{ inputs.build_targets }}
