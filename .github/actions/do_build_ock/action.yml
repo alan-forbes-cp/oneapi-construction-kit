@@ -103,6 +103,9 @@ inputs:
   disable_unitcl_vecz_checks:
     description: "Disable unitcl vecz checks"
     default: OFF
+  gtest_launcher:
+    description: "Googletest suite launcher command"
+    default: "/usr/bin/python;-u;${{ github.workspace }}/code/scripts/gtest-terse-runner.py"
 
 runs:
   # We don't want a new docker just a list of steps, so mark as composite
@@ -153,6 +156,7 @@ runs:
               -DCA_RUNTIME_COMPILER_ENABLED=${{ inputs.runtime_compiler_enabled }} \
               -DCA_EXTERNAL_CLC=${{ inputs.external_clc }} \
               -DCA_CL_DISABLE_UNITCL_VECZ_CHECKS=${{ inputs.disable_unitcl_vecz_checks }} \
+              -DCA_GTEST_LAUNCHER=${{ inputs.gtest_launcher }} \
                $ARCH \
                ${{ inputs.extra_flags }} \
                .
