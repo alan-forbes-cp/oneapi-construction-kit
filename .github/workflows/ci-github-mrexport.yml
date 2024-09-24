@@ -193,7 +193,7 @@ jobs:
 ############### JOB   mr-ubuntu-gcc-x86-llvm-previous-cl3-0-release:
 
   mr-ubuntu-gcc-x86-llvm-previous-cl3-0-release:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     timeout-minutes: 60
     env:
       LLVM_LATEST: release_180
@@ -205,8 +205,8 @@ jobs:
       CommandBuffer: ON
       USM: ON
       FP16: OFF
-      Compiler: gcc-11
-      CXXCompiler: g++-11
+      Compiler: gcc-9
+      CXXCompiler: g++-9
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
@@ -216,6 +216,7 @@ jobs:
     - name: setup-ubuntu
       uses: ./.github/actions/setup_ubuntu_build
       with:
+        ubuntu_version: '20.04'
         llvm_version: '17'
         llvm_build_type: Release
     - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
