@@ -156,7 +156,7 @@ runs:
               -DCA_RUNTIME_COMPILER_ENABLED=${{ inputs.runtime_compiler_enabled }} \
               -DCA_EXTERNAL_CLC=${{ inputs.external_clc }} \
               -DCA_CL_DISABLE_UNITCL_VECZ_CHECKS=${{ inputs.disable_unitcl_vecz_checks }} \
-              -DCA_GTEST_LAUNCHER=${{ inputs.gtest_launcher }} \
+              -DCA_GTEST_LAUNCHER="${{ inputs.gtest_launcher }}" \
                $ARCH \
                ${{ inputs.extra_flags }} \
                .
