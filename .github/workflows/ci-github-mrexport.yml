@@ -235,6 +235,6 @@ jobs:
         assemble_spirv_ll_lit_test_offline: OFF
         usm: $USM
         command_buffer: $CommandBuffer
-        #use_linker: gold
+        use_linker: gold
         build_dir: $GITHUB_WORKSPACE/build
         extra_flags: -DCMAKE_C_COMPILER=$Compiler -DCMAKE_CXX_COMPILER=$CXXCompiler
