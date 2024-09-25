@@ -25,7 +25,7 @@ runs:
       env:
         UBUNTU_VER : '${{ inputs.ubuntu_version }}'
       run: |
-        dpkg --add-architecture i386
+        sudo dpkg --add-architecture i386
         sudo apt-get install -y spirv-tools doxygen
         pip install lit clang-format==17.0.6 virtualenv
         wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
