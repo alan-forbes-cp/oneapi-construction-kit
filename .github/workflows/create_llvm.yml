@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         version: [17, 18]
-        os: [ubuntu-20.04]
+        os: [ubuntu-20.04,ubuntu-22.04]
         build_type: [Release, RelAssert]
         include:
           # We want to set flags related to particular matrix dimensions. To do this
