@@ -92,10 +92,8 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           if [[ "${{ matrix.arch }}" == "x86" ]] ; then
-             echo YES ITS X86
-             #arch setting
+             sudo dpkg --add-architecture i386
              sudo apt-get install --yes gcc-multilib g++-multilib libc6-dev:i386 lib32tinfo-dev
-             #deault gcc ??
           fi
           cmake llvm \
               -DLLVM_ENABLE_DIA_SDK=OFF \
