@@ -93,6 +93,7 @@ jobs:
         run: |
           if [[ "${{ matrix.arch }}" == "x86" ]] ; then
              sudo dpkg --add-architecture i386
+             sudo apt-get update
              sudo apt-get install --yes gcc-multilib g++-multilib libc6-dev:i386 lib32tinfo-dev
           fi
           cmake llvm \
