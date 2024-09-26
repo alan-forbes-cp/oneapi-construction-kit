@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         version: [17, 18]
-        os: ubuntu-22.04
+        os: [ubuntu-22.04]
         build_type: [Release, RelAssert]
         arch : [x86, x86_64, aarch64]
         exclude:
@@ -28,7 +28,7 @@ jobs:
           # For now just do latest llvm with x86 to reduce cache usage.
           - arch: x86
             version: 17
-          - arch: aarch64
+          - arch: x86
             build_type: RelAssert
         include:
           # We want to set flags related to particular matrix dimensions. To do this
