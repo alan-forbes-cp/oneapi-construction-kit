@@ -90,22 +90,25 @@ jobs:
 
       - name: Run cmake
         if: steps.cache.outputs.cache-hit != 'true'
-        run:
+        run: |
           if [[ "${{ matrix.arch }}" == "x86" ]] ; then
              echo YES ITS X86
+             #arch setting
+             sudo apt-get install --yes gcc-multilib g++-multilib libc6-dev:i386 lib32tinfo-dev
+             #deault gcc ??
           fi
-          cmake llvm
-              -DLLVM_ENABLE_DIA_SDK=OFF
-              -DCMAKE_INSTALL_PREFIX=llvm_install
-              -DLLVM_ENABLE_ZLIB=FALSE
-              -DLLVM_ENABLE_ZSTD=FALSE
-              -DLLVM_ENABLE_Z3_SOLVER=FALSE
-              -DLLVM_ENABLE_PROJECTS="clang;lld"
-              -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64;RISCV"
-              -Bbuild
-              -GNinja
-              ${{ matrix.build_type_flags }}
-              ${{ matrix.os_flags}}
+          cmake llvm \
+              -DLLVM_ENABLE_DIA_SDK=OFF \
+              -DCMAKE_INSTALL_PREFIX=llvm_install \
+              -DLLVM_ENABLE_ZLIB=FALSE \
+              -DLLVM_ENABLE_ZSTD=FALSE \
+              -DLLVM_ENABLE_Z3_SOLVER=FALSE \
+              -DLLVM_ENABLE_PROJECTS="clang;lld" \
+              -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64;RISCV" \
+              -Bbuild \
+              -GNinja \
+              ${{ matrix.build_type_flags }} \
+              ${{ matrix.os_flags}} \
               ${{ matrix.arch_flags}}
 
       - name: Run build on llvm
