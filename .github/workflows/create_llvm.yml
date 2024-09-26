@@ -86,11 +86,14 @@ jobs:
       - name: Flags checker
         if: steps.cache.outputs.cache-hit != 'true'
         run:
-          echo Building on "${{ matrix.os }}" with os_flags "${{ matrix.os_flags}}" arch "${{ matrix.arch }}"extra flags "${{ matrix.build_type_flags}}" and  build_type "${{matrix.build_type}}"
+          echo Building on "${{ matrix.os }}" with os_flags "${{ matrix.os_flags}}" arch "${{ matrix.arch }}" extra flags "${{ matrix.build_type_flags}}" and  build_type "${{matrix.build_type}}"
 
       - name: Run cmake
         if: steps.cache.outputs.cache-hit != 'true'
         run:
+          if [[ "${{ matrix.arch }}" == "x86" ]] ; then
+             echo YES ITS X86
+          fi
           cmake llvm
               -DLLVM_ENABLE_DIA_SDK=OFF
               -DCMAKE_INSTALL_PREFIX=llvm_install
