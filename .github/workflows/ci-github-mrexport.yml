@@ -218,6 +218,7 @@ jobs:
       with:
         llvm_version: '17'
         llvm_build_type: Release
+        # added arch
         arch: x86
     - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
     - name: build ock
