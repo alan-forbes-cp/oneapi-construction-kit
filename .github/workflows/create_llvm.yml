@@ -27,7 +27,7 @@ jobs:
             build_type: Release
           # For now just do latest llvm with x86 to reduce cache usage.
           - arch: x86
-            version: 17
+            version: 18
           - arch: x86
             build_type: RelAssert
         include:
