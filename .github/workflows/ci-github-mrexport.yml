@@ -180,7 +180,7 @@ jobs:
     - run: cd /cpu_hal_ock
     - name: build ock
 #      uses: ./.github/actions/do_build_ock
-      uses: $GITHUB_WORKSPACE/.github/actions/do_build_ock
+      uses: /home/runner/work/oneapi-construction-kit/oneapi-construction-kit/.github/actions/do_build_ock
       with:
 #        path: $GITHUB_WORKSPACE/code
         path: $GITHUB_WORKSPACE
