@@ -178,23 +178,23 @@ jobs:
     - run: ls -l /cpu_hal_ock
 #    - run: cd $GITHUB_WORKSPACE/cpu_hal_ock
     - run: cd /cpu_hal_ock
-    - name: build ock
-      uses: ./.github/actions/do_build_ock
-      with:
-        path: $GITHUB_WORKSPACE/code
-        install_dir: $GITHUB_WORKSPACE/install
-        llvm_install_dir: $GITHUB_WORKSPACE/llvm_install
-        build_type: ReleaseAssert
-        build_targets: $TARGET
-        host_image: OFF
-        enable_api: cl
-        mux_targets_enable: cpu
-        use_linker: gold
-        offline_kernel_tests: ON
-        oneapi_con_kit_dir: $ONEAPI_CON_KIT_DIR
-        build_dir: $GITHUB_WORKSPACE/build
-        debug_support: ON
-        extra_flags: -DCA_EXTERNAL_CPU_HAL_DIR=$ONEAPI_CON_KIT_DIR/clik/external/hal_cpu -DCA_CPU_ENABLED=ON
+#    - name: build ock
+#      uses: ./.github/actions/do_build_ock
+#      with:
+#        path: $GITHUB_WORKSPACE/code
+#        install_dir: $GITHUB_WORKSPACE/install
+#        llvm_install_dir: $GITHUB_WORKSPACE/llvm_install
+#        build_type: ReleaseAssert
+#        build_targets: $TARGET
+#        host_image: OFF
+#        enable_api: cl
+#        mux_targets_enable: cpu
+#        use_linker: gold
+#        offline_kernel_tests: ON
+#        oneapi_con_kit_dir: $ONEAPI_CON_KIT_DIR
+#        build_dir: $GITHUB_WORKSPACE/build
+#        debug_support: ON
+#        extra_flags: -DCA_EXTERNAL_CPU_HAL_DIR=$ONEAPI_CON_KIT_DIR/clik/external/hal_cpu -DCA_CPU_ENABLED=ON
 
 ############### JOB   mr-ubuntu-gcc-x86-llvm-previous-cl3-0-release:
 
