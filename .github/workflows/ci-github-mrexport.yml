@@ -153,7 +153,8 @@ jobs:
       FP16: OFF
       Compiler: gcc-9
       TARGET: check-ock-UnitCL
-      ONEAPI_CON_KIT_DIR: ${{ github.workspace }}/code
+#      ONEAPI_CON_KIT_DIR: ${{ github.workspace }}/code
+      ONEAPI_CON_KIT_DIR: ${{ github.workspace }}
       LLVM_VERSION: $LLVM_LATEST
       CXXCompiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
     steps:
