@@ -153,8 +153,8 @@ jobs:
       FP16: OFF
       Compiler: gcc-9
       TARGET: check-ock-UnitCL
-#      ONEAPI_CON_KIT_DIR: ${{ github.workspace }}/code
-      ONEAPI_CON_KIT_DIR: ${{ github.workspace }}
+      ONEAPI_CON_KIT_DIR: ${{ github.workspace }}/code
+#      ONEAPI_CON_KIT_DIR: ${{ github.workspace }}
       LLVM_VERSION: $LLVM_LATEST
       CXXCompiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
     steps:
@@ -171,18 +171,18 @@ jobs:
         llvm_build_type: RelAssert
     - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
     - run: pip install cookiecutter
-#    - run: python -u code/scripts/create_target.py $PWD/code code/scripts/new_target_templates/cpu_x86.json --external-dir $GITHUB_WORKSPACE/cpu_hal_ock
     - run: sudo mkdir /cpu_hal_ock
     - run: sudo chmod 777 /cpu_hal_ock
-    - run: python -u scripts/create_target.py $PWD scripts/new_target_templates/cpu_x86.json --external-dir /cpu_hal_ock
-#    - run: ls -l $GITHUB_WORKSPACE/cpu_hal_ock
-    - run: ls -l /cpu_hal_ock
+    - run: python -u code/scripts/create_target.py $PWD/code $PWD/code/scripts/new_target_templates/cpu_x86.json --external-dir $GITHUB_WORKSPACE/cpu_hal_ock
+#    - run: python -u scripts/create_target.py $PWD scripts/new_target_templates/cpu_x86.json --external-dir /cpu_hal_ock
+    - run: ls -l $GITHUB_WORKSPACE/cpu_hal_ock
+#    - run: ls -l /cpu_hal_ock
 #    - run: cd $GITHUB_WORKSPACE/cpu_hal_ock
     - name: build ock
       uses: ./.github/actions/do_build_ock
       with:
-#        path: $GITHUB_WORKSPACE/code
-        path: /cpu_hal_ock
+        path: $GITHUB_WORKSPACE/code
+#        path: /cpu_hal_ock
         install_dir: $GITHUB_WORKSPACE/install
         llvm_install_dir: $GITHUB_WORKSPACE/llvm_install
         build_type: ReleaseAssert
