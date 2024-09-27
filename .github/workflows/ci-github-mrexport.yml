@@ -181,6 +181,7 @@ jobs:
     - name: build ock
       uses: ./.github/actions/do_build_ock
       with:
+        runtime_compiler_enabled: OFF
 #        path: $GITHUB_WORKSPACE/code
         path: /cpu_hal_ock
         install_dir: $GITHUB_WORKSPACE/install
