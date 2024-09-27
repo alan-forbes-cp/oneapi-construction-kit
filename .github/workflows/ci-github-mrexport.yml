@@ -177,13 +177,11 @@ jobs:
 #    - run: ls -l $GITHUB_WORKSPACE/cpu_hal_ock
     - run: ls -l /cpu_hal_ock
 #    - run: cd $GITHUB_WORKSPACE/cpu_hal_ock
-    - run: cd /cpu_hal_ock
     - name: build ock
-#      uses: ./.github/actions/do_build_ock
-      uses: /home/runner/work/oneapi-construction-kit/oneapi-construction-kit/.github/actions/do_build_ock
+      uses: ./.github/actions/do_build_ock
       with:
 #        path: $GITHUB_WORKSPACE/code
-        path: $GITHUB_WORKSPACE
+        path: /cpu_hal_ock
         install_dir: $GITHUB_WORKSPACE/install
         llvm_install_dir: $GITHUB_WORKSPACE/llvm_install
         build_type: ReleaseAssert
