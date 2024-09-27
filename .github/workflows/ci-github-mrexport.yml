@@ -160,8 +160,8 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
       with:
-        path: code
-    - run: cp -R code/.github .github
+#        path: code
+#    - run: cp -R code/.github .github
     - name: setup-ubuntu
       uses: ./.github/actions/setup_ubuntu_build
       with:
@@ -169,9 +169,14 @@ jobs:
         llvm_build_type: RelAssert
     - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
     - run: pip install cookiecutter
-    - run: python -u code/scripts/create_target.py $PWD/code code/scripts/new_target_templates/cpu_x86.json --external-dir $GITHUB_WORKSPACE/cpu_hal_ock
-    - run: ls -l $GITHUB_WORKSPACE/cpu_hal_ock
-    - run: cd $GITHUB_WORKSPACE/cpu_hal_ock
+#    - run: python -u code/scripts/create_target.py $PWD/code code/scripts/new_target_templates/cpu_x86.json --external-dir $GITHUB_WORKSPACE/cpu_hal_ock
+    - run: sudo mkdir /cpu_hal_ock
+    - run: sudo chmod 777 /cpu_hal_ock
+    - run: python -u scripts/create_target.py $PWD scripts/new_target_templates/cpu_x86.json --external-dir /cpu_hal_ock
+#    - run: ls -l $GITHUB_WORKSPACE/cpu_hal_ock
+    - run: ls -l /cpu_hal_ock
+#    - run: cd $GITHUB_WORKSPACE/cpu_hal_ock
+    - run: cd /cpu_hal_ock
     - name: build ock
       uses: ./.github/actions/do_build_ock
       with:
