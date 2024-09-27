@@ -197,7 +197,7 @@ jobs:
         build_dir: $GITHUB_WORKSPACE/build
         debug_support: ON
         extra_flags: -DCA_EXTERNAL_CPU_HAL_DIR=$ONEAPI_CON_KIT_DIR/clik/external/hal_cpu -DCA_CPU_ENABLED=ON
-    - run: echo PWD IS: `pwd` && ls -al
+    - run: echo PWD IS `pwd` && ls -al
 
 ############### JOB   mr-ubuntu-gcc-x86-llvm-previous-cl3-0-release:
 
