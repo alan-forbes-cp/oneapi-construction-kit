@@ -161,6 +161,7 @@ jobs:
       uses: actions/checkout@v4.1.0
       with:
 #        path: code
+        path: .
 #    - run: cp -R code/.github .github
     - name: setup-ubuntu
       uses: ./.github/actions/setup_ubuntu_build
