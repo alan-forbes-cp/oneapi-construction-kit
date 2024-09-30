@@ -14,8 +14,8 @@ inputs:
     description: 'mux targets to enable e.g. riscv, host (default host)'
     default: "host"
   mux_compilers_enable:
-    description: 'mux compiler target to enable e.g. riscv, host (default host)'
-    default: "host"
+    description: 'mux compiler target to enable e.g. riscv, host (no default)'
+    default: ""
   usm:
     description: 'Enable usm (default ON)'
     default: ON
