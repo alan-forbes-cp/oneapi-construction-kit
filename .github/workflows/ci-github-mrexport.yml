@@ -175,7 +175,6 @@ jobs:
       uses: ./.github/actions/do_build_ock
       with:
         path: $GITHUB_WORKSPACE/cpu_hal_ock
-#        path: /cpu_hal_ock
         install_dir: $GITHUB_WORKSPACE/install
         llvm_install_dir: $GITHUB_WORKSPACE/llvm_install
         build_type: ReleaseAssert
@@ -239,3 +238,51 @@ jobs:
         use_linker: gold
         build_dir: $GITHUB_WORKSPACE/build
         extra_flags: -DCMAKE_C_COMPILER=$Compiler -DCMAKE_CXX_COMPILER=$CXXCompiler
+
+############### JOB   mr-ubuntu-clang-x86-llvm-latest-cl3-0:
+
+  mr-ubuntu-clang-x86-llvm-latest-cl3-0:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    env:
+      LLVM_LATEST: release_180
+      LLVM_PREVIOUS: release_170
+      Arch: x86
+      TARGET: check-ock
+      Images: OFF
+      CommandBuffer: ON
+      USM: ON
+      FP16: OFF
+      Compiler: clang-17
+      CXXCompiler: llvm_install/bin/clang++
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4.1.0
+      with:
+        path: code
+    - run: cp -R code/.github .github
+    - name: setup-ubuntu
+      uses: ./.github/actions/setup_ubuntu_build
+      with:
+        llvm_version: '18'
+        llvm_build_type: RelAssert
+    - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
+    - name: build ock
+      uses: ./.github/actions/do_build_ock
+      with:
+        path: $GITHUB_WORKSPACE/code
+        install_dir: $GITHUB_WORKSPACE/install
+        llvm_install_dir: $GITHUB_WORKSPACE/llvm_install
+        build_type: ReleaseAssert
+        arch: $Arch
+        extra_flags: $GITHUB_WORKSPACE/$Compiler $GITHUB_WORKSPACE/$CXXCompiler
+        build_targets: $TARGET
+        host_image: $Images
+        host_enable_builtins: ON
+        host_fp16: $FP16
+        assemble_spirv_ll_lit_test_offline: OFF
+        usm: $USM
+        command_buffer: $CommandBuffer
+        use_linker: gold
+        build_dir: $GITHUB_WORKSPACE/build
+        debug_support: ON
