@@ -190,6 +190,7 @@ jobs:
         host_image: OFF
         enable_api: cl
         mux_targets_enable: cpu
+        mux_compilers_enable:
         use_linker: gold
         offline_kernel_tests: ON
         oneapi_con_kit_dir: $ONEAPI_CON_KIT_DIR
