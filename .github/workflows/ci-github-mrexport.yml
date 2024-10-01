@@ -253,8 +253,8 @@ jobs:
       CommandBuffer: ON
       USM: ON
       FP16: OFF
-      Compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang
-      CXXCompiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
+      Compiler: llvm_install/bin/clang
+      CXXCompiler: llvm_install/bin/clang++
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
@@ -277,7 +277,7 @@ jobs:
         llvm_install_dir: $GITHUB_WORKSPACE/llvm_install
         build_type: ReleaseAssert
         arch: $Arch
-        extra_flags: -DCMAKE_C_COMPILER=$Compiler -DCMAKE_CXX_COMPILER=$CXXCompiler
+        extra_flags: -DCMAKE_C_COMPILER=$GITHUB_WORKSPACE/$Compiler -DCMAKE_CXX_COMPILER=$GITHUB_WORKSPACE/$CXXCompiler
         build_targets: $TARGET
         host_image: $Images
         host_enable_builtins: ON
