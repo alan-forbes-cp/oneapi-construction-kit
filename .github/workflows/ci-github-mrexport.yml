@@ -253,8 +253,8 @@ jobs:
       CommandBuffer: ON
       USM: ON
       FP16: OFF
-      Compiler: llvm_install/bin/clang
-      CXXCompiler: llvm_install/bin/clang++
+      Compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang
+      CXXCompiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
