@@ -268,7 +268,6 @@ jobs:
         llvm_build_type: RelAssert
         arch: x86
     - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
-    - run: ls -alR $GITHUB_WORKSPACE/llvm_install
     - name: build ock
       uses: ./.github/actions/do_build_ock
       with:
@@ -288,3 +287,4 @@ jobs:
         use_linker: gold
         build_dir: $GITHUB_WORKSPACE/build
         debug_support: ON
+        enable_api:         # Is not "cl" sufficient? Make it explicitly "vk"?
