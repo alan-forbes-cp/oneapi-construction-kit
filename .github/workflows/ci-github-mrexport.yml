@@ -253,7 +253,7 @@ jobs:
       CommandBuffer: ON
       USM: ON
       FP16: OFF
-      Compiler: clang-17
+      Compiler: llvm_install/bin/clang
       CXXCompiler: llvm_install/bin/clang++
     steps:
     - name: Checkout repo
@@ -266,6 +266,7 @@ jobs:
       with:
         llvm_version: '18'
         llvm_build_type: RelAssert
+        arch: x86
     - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
     - name: build ock
       uses: ./.github/actions/do_build_ock
@@ -275,7 +276,7 @@ jobs:
         llvm_install_dir: $GITHUB_WORKSPACE/llvm_install
         build_type: ReleaseAssert
         arch: $Arch
-        extra_flags: $GITHUB_WORKSPACE/$Compiler $GITHUB_WORKSPACE/$CXXCompiler
+        extra_flags: -DCMAKE_C_COMPILER=$Compiler -DCMAKE_CXX_COMPILER=$CXXCompiler
         build_targets: $TARGET
         host_image: $Images
         host_enable_builtins: ON
