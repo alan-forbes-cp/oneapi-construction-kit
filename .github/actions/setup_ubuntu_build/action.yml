@@ -32,7 +32,8 @@ runs:
         echo VER IS "${{ inputs.ubuntu_version }}"
         echo ARCH IS "${{ inputs.arch }}"
         pip install lit clang-format==17.0.6 virtualenv
-        if [ "$ARCH" = "x86" ]; then sudo dpkg --add-architecture i386 ; fi
+        #if [ "$ARCH" = "x86" ]; then sudo dpkg --add-architecture i386 ; fi
+        if [ "${{ inputs.arch }}" = "x86" ]; then sudo dpkg --add-architecture i386 ; fi
         wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
         if [ "$UBUNTU_VER" = "20.04" ]; then sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.3.243-focal.list https://packages.lunarg.com/vulkan/1.3.243/lunarg-vulkan-1.3.243-focal.list; fi
         if [ "$UBUNTU_VER" = "22.04" ]; then sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.3.243-jammy.list https://packages.lunarg.com/vulkan/1.3.243/lunarg-vulkan-1.3.243-jammy.list; fi
