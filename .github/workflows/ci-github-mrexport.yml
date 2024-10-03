@@ -77,6 +77,7 @@ jobs:
         hal_refsi_thread_mode: $HAL_REFSI_THREAD_MODE
         build_dir: $GITHUB_WORKSPACE/build
         debug_support: ON
+        gtest_launcher: "/usr/bin/python;-u;${{ github.workspace }}/code/scripts/gtest-terse-runner.py"
 
 ############### JOB   mr-ubuntu-gcc-x86_64-riscv-fp16-cl3-0:
 
