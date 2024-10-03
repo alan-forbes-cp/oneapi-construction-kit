@@ -137,6 +137,7 @@ jobs:
         hal_refsi_thread_mode: $HAL_REFSI_THREAD_MODE
         build_dir: $GITHUB_WORKSPACE/build
         debug_support: ON
+        gtest_launcher: "/usr/bin/python;-u;${{ github.workspace }}/code/scripts/gtest-terse-runner.py"
 
 ############### JOB   mr-ubuntu-gcc-x86_64-cpu:
 
@@ -188,6 +189,7 @@ jobs:
         build_dir: $GITHUB_WORKSPACE/build
         debug_support: ON
         extra_flags: -DCA_EXTERNAL_CPU_HAL_DIR=$ONEAPI_CON_KIT_DIR/clik/external/hal_cpu -DCA_CPU_ENABLED=ON
+        gtest_launcher: "/usr/bin/python;-u;${{ github.workspace }}/code/scripts/gtest-terse-runner.py"
 
 ############### JOB   mr-ubuntu-gcc-x86-llvm-previous-cl3-0-release:
 
@@ -238,6 +240,7 @@ jobs:
         use_linker: gold
         build_dir: $GITHUB_WORKSPACE/build
         extra_flags: -DCMAKE_C_COMPILER=$Compiler -DCMAKE_CXX_COMPILER=$CXXCompiler
+        gtest_launcher: "/usr/bin/python;-u;${{ github.workspace }}/code/scripts/gtest-terse-runner.py"
 
 ############### JOB   mr-ubuntu-clang-x86-llvm-latest-cl3-0:
 
@@ -288,3 +291,4 @@ jobs:
         build_dir: $GITHUB_WORKSPACE/build
         debug_support: ON
         enable_api:         # Is not "cl" sufficient? Make it explicitly "vk"?
+        gtest_launcher: "/usr/bin/python;-u;${{ github.workspace }}/code/scripts/gtest-terse-runner.py"
