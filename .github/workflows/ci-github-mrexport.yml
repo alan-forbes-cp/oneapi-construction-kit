@@ -240,10 +240,9 @@ jobs:
         mux_targets_enable: cpu
         use_linker: gold
         offline_kernel_tests: ON
-        oneapi_con_kit_dir: $ONEAPI_CON_KIT_DIR
         build_dir: $GITHUB_WORKSPACE/build
         debug_support: ON
-        extra_flags: -DCA_EXTERNAL_CPU_HAL_DIR=$ONEAPI_CON_KIT_DIR/clik/external/hal_cpu -DCA_CPU_ENABLED=ON
+        extra_flags: -DCA_EXTERNAL_ONEAPI_CON_KIT_DIR=$ONEAPI_CON_KIT_DIR -DCA_EXTERNAL_CPU_HAL_DIR=$ONEAPI_CON_KIT_DIR/clik/external/hal_cpu -DCA_CPU_ENABLED=ON
         gtest_launcher: "/usr/bin/python;-u;${{ github.workspace }}/code/scripts/gtest-terse-runner.py"
 
 ############### JOB   mr-ubuntu-gcc-x86-llvm-previous-cl3-0-release:
