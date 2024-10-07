@@ -251,6 +251,7 @@ jobs:
         build_dir: $GITHUB_WORKSPACE/build
         debug_support: ON
         extra_flags: -DCA_EXTERNAL_ONEAPI_CON_KIT_DIR=$ONEAPI_CON_KIT_DIR -DCA_EXTERNAL_CPU_HAL_DIR=$ONEAPI_CON_KIT_DIR/clik/external/hal_cpu -DCA_CPU_ENABLED=ON
+        gtest_launcher: "/usr/bin/python;-u;${{ github.workspace }}/code/scripts/gtest-terse-runner.py"
 
 ############### JOB   mr-ubuntu-gcc-x86_64-cpu:
 
