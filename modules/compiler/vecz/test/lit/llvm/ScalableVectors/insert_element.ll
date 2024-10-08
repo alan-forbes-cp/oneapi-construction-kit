@@ -85,8 +85,8 @@ entry:
 ; IE: [[VAL1:%.*]] = shufflevector <vscale x 4 x float> [[VAL0]], <vscale x 4 x float> poison, <vscale x 4 x i32> zeroinitializer
 ; IE: store <vscale x 16 x float> {{.*}}, ptr [[ALLOC]], align 64
 ; IE: [[IDX:%.*]] = sext i32 %idx to i64
-; IE: [[ADDR:%.*]] = getelementptr inbounds float, ptr [[ALLOC]], i64 [[IDX]]
-; IE: call void @__vecz_b_interleaved_store4_4_u5nxv4fu3ptr(<vscale x 4 x float> [[VAL1]], ptr nonnull [[ADDR]])
+; IE: [[ADDR:%.*]] = getelementptr float, ptr [[ALLOC]], i64 [[IDX]]
+; IE: call void @__vecz_b_interleaved_store4_4_u5nxv4fu3ptr(<vscale x 4 x float> [[VAL1]], ptr [[ADDR]])
 ; IE: = load <vscale x 16 x float>, ptr [[ALLOC]], align 64
 
 ; Both the vector and index are uniform, so check we're not unnecessarily packetizing
@@ -98,14 +98,14 @@ entry:
 ; IE-INDICES: [[ALLOC:%.*]] = alloca <vscale x 16 x float>, align 64
 ; IE-INDICES: [[VAL:%.*]] = uitofp <vscale x 4 x i64> {{%.*}} to <vscale x 4 x float>
 ; IE-INDICES: store <vscale x 16 x float> {{%.*}}, ptr [[ALLOC]], align 64
-; IE-INDICES: [[T1:%.*]] = call <vscale x 4 x i32> @llvm.experimental.stepvector.nxv4i32()
+; IE-INDICES: [[T1:%.*]] = call <vscale x 4 x i32> @llvm.{{(experimental\.)?}}stepvector.nxv4i32()
 ; IE-INDICES: [[T2:%.*]] = shl <vscale x 4 x i32> [[T1]], shufflevector (<vscale x 4 x i32> insertelement (<vscale x 4 x i32> {{(undef|poison)}}, i32 2, {{(i32|i64)}} 0), <vscale x 4 x i32> {{(undef|poison)}}, <vscale x 4 x i32> zeroinitializer)
 
 ; LLVM 16 deduces add/or equivalence and uses `or` instead.
 ; IE-INDICES: [[T3:%.*]] = {{add|or}} {{(disjoint )?}}<vscale x 4 x i32> [[T2]], {{%.*}}
 
 ; IE-INDICES: [[T4:%.*]] = sext <vscale x 4 x i32> [[T3]] to <vscale x 4 x i64>
-; IE-INDICES: [[ADDR:%.*]] = getelementptr inbounds float, ptr %0, <vscale x 4 x i64> [[T4]]
+; IE-INDICES: [[ADDR:%.*]] = getelementptr float, ptr %0, <vscale x 4 x i64> [[T4]]
 ; IE-INDICES: call void @__vecz_b_scatter_store4_u5nxv4fu9nxv4u3ptr(<vscale x 4 x float> [[VAL]], <vscale x 4 x ptr> [[ADDR]])
 ; IE-INDICES: = load <vscale x 16 x float>, ptr [[ALLOC]], align 64
 

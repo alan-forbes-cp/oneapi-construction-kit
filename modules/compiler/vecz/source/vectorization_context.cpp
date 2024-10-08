@@ -28,6 +28,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/Support/AtomicOrdering.h>
 #include <llvm/Target/TargetMachine.h>
+#include <multi_llvm/multi_llvm.h>
 #include <multi_llvm/vector_type_helper.h>
 
 #include <algorithm>
@@ -444,6 +445,12 @@ VectorizationContext::isMaskedAtomicFunction(const Function &F) const {
       AtomicInfo.BinOp = AtomicRMWInst::BinOp::UIncWrap;
     } else if (FnName.consume_front("udecwrap")) {
       AtomicInfo.BinOp = AtomicRMWInst::BinOp::UDecWrap;
+#if LLVM_VERSION_GREATER_EQUAL(20, 0)
+    } else if (FnName.consume_front("usubcond")) {
+      AtomicInfo.BinOp = AtomicRMWInst::BinOp::USubCond;
+    } else if (FnName.consume_front("usubsat")) {
+      AtomicInfo.BinOp = AtomicRMWInst::BinOp::USubSat;
+#endif
     } else {
       return std::nullopt;
     }
@@ -495,7 +502,7 @@ VectorizationContext::isMaskedAtomicFunction(const Function &F) const {
 
   if (IsCmpXchg) {
     if (auto Ordering = demangleOrdering()) {
-      AtomicInfo.CmpXchgFailureOrdering = *Ordering;
+      AtomicInfo.CmpXchgFailureOrdering = Ordering;
     } else {
       return std::nullopt;
     }
@@ -583,6 +590,10 @@ Function *VectorizationContext::getOrCreateMaskedAtomicFunction(
       BINOP_CASE(FMin, "fmin");
       BINOP_CASE(UIncWrap, "uincwrap");
       BINOP_CASE(UDecWrap, "udecwrap");
+#if LLVM_VERSION_GREATER_EQUAL(20, 0)
+      BINOP_CASE(USubCond, "usubcond");
+      BINOP_CASE(USubSat, "usubsat");
+#endif
       case llvm::AtomicRMWInst::BAD_BINOP:
         return nullptr;
     }
@@ -1104,10 +1115,14 @@ bool VectorizationContext::emitMaskedAtomicBody(
 
   Value *const IdxStart = B.getInt32(0);
   ConstantInt *const KnownMin = B.getInt32(MA.VF.getKnownMinValue());
-  Value *IdxEnd =
-      MA.IsVectorPredicated
-          ? F.getArg(3 + IsCmpXchg)
-          : (!MA.VF.isScalable() ? KnownMin : B.CreateVScale(KnownMin));
+  Value *IdxEnd;
+  if (MA.IsVectorPredicated) {
+    IdxEnd = F.getArg(3 + IsCmpXchg);
+  } else if (MA.VF.isScalable()) {
+    IdxEnd = B.CreateVScale(KnownMin);
+  } else {
+    IdxEnd = KnownMin;
+  }
 
   Value *RetVal = nullptr;
   Value *RetSuccessVal = nullptr;

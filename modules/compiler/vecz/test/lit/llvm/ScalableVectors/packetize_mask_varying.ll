@@ -38,14 +38,14 @@ if.then:
 if.end:
   ret void
 ; CHECK: define spir_kernel void @__vecz_nxv4_mask_varying
-; CHECK: [[idx0:%.*]] = call <vscale x 16 x i32> @llvm.experimental.stepvector.nxv16i32()
+; CHECK: [[idx0:%.*]] = call <vscale x 16 x i32> @llvm.{{(experimental\.)?}}stepvector.nxv16i32()
 ; CHECK: [[idx1:%.*]] = lshr <vscale x 16 x i32> [[idx0]], shufflevector (<vscale x 16 x i32> insertelement (<vscale x 16 x i32> {{(undef|poison)}}, i32 2, {{(i32|i64)}} 0), <vscale x 16 x i32> {{(undef|poison)}}, <vscale x 16 x i32> zeroinitializer)
 
 ; Note that since we just did a lshr 2 on the input of the extend, it doesn't
 ; make any difference whether it's a zext or sext, but LLVM 16 prefers zext.
 ; CHECK: [[idx2:%.*]] = {{s|z}}ext{{( nneg)?}} <vscale x 16 x i32> [[idx1]] to <vscale x 16 x i64>
 
-; CHECK: [[t1:%.*]] = getelementptr inbounds i8, ptr {{.*}}, <vscale x 16 x i64> [[idx2]]
+; CHECK: [[t1:%.*]] = getelementptr i8, ptr {{.*}}, <vscale x 16 x i64> [[idx2]]
 ; CHECK: [[t2:%.*]] = call <vscale x 16 x i8> @llvm.masked.gather.nxv16i8.nxv16p0(<vscale x 16 x ptr> [[t1]],
 ; CHECK: [[splat:%.*]] = trunc <vscale x 16 x i8> [[t2]] to <vscale x 16 x i1>
 ; CHECK: call void @__vecz_b_masked_store16_u6nxv16ju3ptru6nxv16b(<vscale x 16 x i32> {{.*}}, ptr %arrayidxz, <vscale x 16 x i1> [[splat]])

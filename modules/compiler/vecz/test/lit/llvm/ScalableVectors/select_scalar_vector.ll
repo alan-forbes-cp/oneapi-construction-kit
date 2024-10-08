@@ -43,14 +43,14 @@ entry:
 ; CHECK: [[cmp1:%.*]] = icmp slt <vscale x 4 x i32>
 ; CHECK: [[sext:%.*]] = sext <vscale x 4 x i1> [[cmp1]] to <vscale x 4 x i8>
 ; CHECK: store <vscale x 4 x i8> [[sext]], ptr [[alloc:%.*]], align 4
-; CHECK: [[idx0:%.*]] = call <vscale x 8 x i32> @llvm.experimental.stepvector.nxv8i32()
+; CHECK: [[idx0:%.*]] = call <vscale x 8 x i32> @llvm.{{(experimental\.)?}}stepvector.nxv8i32()
 ; CHECK: [[idx1:%.*]] = lshr <vscale x 8 x i32> [[idx0]], shufflevector (<vscale x 8 x i32> insertelement (<vscale x 8 x i32> {{(undef|poison)}}, i32 1, {{(i32|i64)}} 0), <vscale x 8 x i32> {{(undef|poison)}}, <vscale x 8 x i32> zeroinitializer)
 
 ; Note that since we just did a lshr 1 on the input of the extend, it doesn't
 ; make any difference whether it's a zext or sext, but LLVM 16 prefers zext.
 ; CHECK: [[sext2:%.*]] = {{s|z}}ext{{( nneg)?}} <vscale x 8 x i32> [[idx1]] to <vscale x 8 x i64>
 
-; CHECK: [[addrs:%.*]] = getelementptr inbounds i8, ptr [[alloc]], <vscale x 8 x i64> [[sext2]]
+; CHECK: [[addrs:%.*]] = getelementptr i8, ptr [[alloc]], <vscale x 8 x i64> [[sext2]]
 ; CHECK: [[gather:%.*]] = call <vscale x 8 x i8> @llvm.masked.gather.nxv8i8.nxv8p0(<vscale x 8 x ptr> [[addrs]],
 ; CHECK: [[cmp:%.*]] = trunc <vscale x 8 x i8> [[gather]] to <vscale x 8 x i1>
 ; CHECK: [[sel:%.*]] = select <vscale x 8 x i1> [[cmp]], <vscale x 8 x i32> [[rhs]], <vscale x 8 x i32> shufflevector (<vscale x 8 x i32> insertelement (<vscale x 8 x i32> {{(undef|poison)}}, i32 4, {{(i32|i64)}} 0), <vscale x 8 x i32> {{(undef|poison)}}, <vscale x 8 x i32> zeroinitializer)
