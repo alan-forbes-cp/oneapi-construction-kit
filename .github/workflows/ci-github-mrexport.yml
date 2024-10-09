@@ -476,6 +476,7 @@ jobs:
         c_compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang
         cxx_compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
         build_targets: check-ock
+        builtin_kernel: ON
         use_linker: gold
         debug_support: ON
     - name: build ock
