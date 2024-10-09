@@ -466,8 +466,9 @@ jobs:
     - name: setup-ubuntu
       uses: ./.github/actions/setup_ubuntu_build
       with:
-        llvm_version: '18' # no 17 in source repo
+        llvm_version: '18' # no 17 in source repo??
         llvm_build_type: RelAssert
+        arch: x86
     - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
     - name: build ock
       uses: ./.github/actions/do_build_ock
