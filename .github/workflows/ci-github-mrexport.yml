@@ -454,3 +454,39 @@ jobs:
         debug_support: ON
         enable_api:         # Is not "cl" sufficient? Make it explicitly "vk"?
         gtest_launcher: "/usr/bin/python;-u;${{ github.workspace }}/code/scripts/gtest-terse-runner.py"
+
+############### JOB   mr-ubuntu-clang-x86-llvm-previous-cl3-0-offline:
+
+  mr-ubuntu-clang-x86-llvm-previous-cl3-0-offline:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4.1.0
+    - name: setup-ubuntu
+      uses: ./.github/actions/setup_ubuntu_build
+      with:
+        llvm_version: '18' # no 17 in source repo
+        llvm_build_type: RelAssert
+    - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
+    - name: build ock
+      uses: ./.github/actions/do_build_ock
+      with:
+        arch: x86
+        c_compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang
+        cxx_compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
+        build_targets: check-ock
+        use_linker: gold
+        debug_support: ON
+    - name: build ock
+      uses: ./.github/actions/do_build_ock
+      with:
+        arch: x86
+        c_compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang
+        cxx_compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
+        build_targets: check-ock
+        runtime_compiler_enabled: OFF
+        assemble_spirv_ll_lit_test_offline: ON
+        external_clc: ${GITHUB_WORKSPACE}/build/bin/clc
+        use_linker: gold
+        debug_support: ON
