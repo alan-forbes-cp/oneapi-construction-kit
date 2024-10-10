@@ -470,16 +470,16 @@ jobs:
         llvm_build_type: RelAssert
         arch: x86
     - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
-#    - name: build ock
-#      uses: ./.github/actions/do_build_ock
-#      with:
-#        arch: x86
-#        c_compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang
-#        cxx_compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
-#        build_targets: check-ock
-#        builtin_kernel: ON
-#        use_linker: gold
-#        debug_support: ON
+    - name: build ock
+      uses: ./.github/actions/do_build_ock
+      with:
+        arch: x86
+        c_compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang
+        cxx_compiler: $GITHUB_WORKSPACE/llvm_install/bin/clang++
+        build_targets: check-ock
+        builtin_kernel: ON
+        use_linker: gold
+        debug_support: ON
     - name: build ock
       uses: ./.github/actions/do_build_ock
       with:
@@ -492,5 +492,5 @@ jobs:
         external_clc: ${GITHUB_WORKSPACE}/build/bin/clc
         use_linker: gold
         debug_support: ON
-        install_dir: $GITHUB_WORKSPACE/install_offline   # avoid default dir used in previous job
-        build_dir: $GITHUB_WORKSPACE/build_offline   # avoid default dir used in previous job
+        install_dir: $GITHUB_WORKSPACE/install_offline   # avoid default dir used in previous step
+        build_dir: $GITHUB_WORKSPACE/build_offline   # avoid default dir used in previous step
