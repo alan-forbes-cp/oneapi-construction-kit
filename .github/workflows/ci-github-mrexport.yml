@@ -459,7 +459,7 @@ jobs:
 
   mr-ubuntu-clang-x86-llvm-previous-cl3-0-offline:
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    timeout-minutes: 90  # allow extra time for this job
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4.1.0
@@ -470,7 +470,7 @@ jobs:
         llvm_build_type: RelAssert
         arch: x86
     - run: echo WORKSPACE is $GITHUB_WORKSPACE && echo PWD is `pwd` && ls -al
-    - name: build ock
+    - name: build ock one
       uses: ./.github/actions/do_build_ock
       with:
         arch: x86
@@ -480,7 +480,7 @@ jobs:
         builtin_kernel: ON
         use_linker: gold
         debug_support: ON
-    - name: build ock
+    - name: build ock two
       uses: ./.github/actions/do_build_ock
       with:
         arch: x86
